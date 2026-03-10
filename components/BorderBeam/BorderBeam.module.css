@@ -1,0 +1,41 @@
+.borderBeam {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    /* The mask leaves only the border area visible */
+    padding: var(--border-width, 1.5px);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    z-index: 10;
+}
+
+.borderBeam::before {
+    content: '';
+    position: absolute;
+    /* Make the beam large enough to cover all corners while spinning */
+    left: -50%;
+    top: -50%;
+    width: 200%;
+    height: 200%;
+    /* The animated conic gradient spinning 360 degrees */
+    background: conic-gradient(transparent,
+            transparent 60%,
+            var(--color-from) 80%,
+            var(--color-to) 100%);
+    animation: rotateBeam var(--duration, 8s) linear infinite;
+    animation-delay: var(--delay, 0s);
+    opacity: 0.8;
+}
+
+@keyframes rotateBeam {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

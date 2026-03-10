@@ -1,0 +1,65 @@
+.techSection {
+    padding: var(--space-3xl) 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.orbitContainer {
+    position: relative;
+    display: flex;
+    height: 600px;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.iconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-cyan);
+    filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.3));
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-size: inherit;
+}
+
+
+.iconWrapper:hover {
+    color: #fff;
+    filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.8));
+    transform: scale(1.2);
+}
+
+.centerLogo {
+    position: absolute;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logoInner {
+    padding: 2px;
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 102, 255, 0.2));
+    border-radius: 50%;
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    box-shadow: 0 0 30px rgba(0, 102, 255, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logoImg {
+    border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+    .orbitContainer {
+        height: 450px;
+        transform: scale(0.7);
+    }
+}

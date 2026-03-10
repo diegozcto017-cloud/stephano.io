@@ -1,0 +1,33 @@
+.marquee {
+    display: flex;
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+    gap: 24px;
+}
+
+.track {
+    display: flex;
+    gap: 24px;
+    flex-shrink: 0;
+    animation: marquee-scroll var(--marquee-duration, 30s) linear infinite;
+    will-change: transform;
+}
+
+.reverse {
+    animation-direction: reverse;
+}
+
+.pauseOnHover:hover .track {
+    animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(calc(-100% - 24px));
+    }
+}

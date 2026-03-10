@@ -1,0 +1,100 @@
+.cta {
+    padding: 100px 0;
+    text-align: center;
+}
+
+.ctaBox {
+    background: linear-gradient(165deg,
+            rgba(5, 15, 35, 0.95) 0%,
+            rgba(10, 25, 55, 0.92) 50%,
+            rgba(5, 15, 35, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 229, 255, 0.12);
+    border-radius: 28px;
+    padding: 80px 48px;
+    position: relative;
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 0 60px rgba(0, 102, 255, 0.06),
+        0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.ctaBox::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.3), transparent);
+}
+
+.ctaBox::after {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -15%;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 229, 255, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ctaBox:hover {
+    border-color: rgba(0, 229, 255, 0.25);
+    box-shadow:
+        0 0 80px rgba(0, 102, 255, 0.1),
+        0 12px 48px rgba(0, 0, 0, 0.4);
+}
+
+.ctaTitle {
+    font-size: 44px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    line-height: 1.1;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    position: relative;
+    z-index: 1;
+}
+
+.ctaDesc {
+    font-size: 17px;
+    color: rgba(255, 255, 255, 0.55);
+    max-width: 580px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+    position: relative;
+    z-index: 1;
+}
+
+.ctaActions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 640px) {
+    .ctaBox {
+        padding: 48px 24px;
+        border-radius: 20px;
+    }
+
+    .ctaTitle {
+        font-size: 28px;
+    }
+
+    .ctaDesc {
+        font-size: 15px;
+    }
+
+    .ctaActions {
+        flex-direction: column;
+    }
+}

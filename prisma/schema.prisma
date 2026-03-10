@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Lead {
+  id                Int      @id @default(autoincrement())
+  nombre            String   @db.VarChar(120)
+  empresa           String?  @db.VarChar(120)
+  email             String   @db.VarChar(255)
+  telefono          String?  @db.VarChar(30)
+  tipo_proyecto     String   @db.VarChar(80)
+  presupuesto_rango String?  @db.VarChar(60)
+  urgencia          String?  @db.VarChar(40)
+  mensaje           String?  @db.Text
+  estado            String   @default("nuevo") @db.VarChar(20) // nuevo, en_progreso, completado, cancelado
+  progreso          Int      @default(0)
+  url_proyecto      String?  @db.VarChar(255)
+  notas_internas    String?  @db.Text
+  fecha_creacion    DateTime @default(now())
+  fecha_actualizacion DateTime @updatedAt
+
+  @@map("leads")
+}
+
+model AdminUser {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  password String
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Ad {
+  id          Int       @id @default(autoincrement())
+  scratch     String    @db.Text                      // La idea base ingresada por Diego (o generada auto)
+  headline    String?   @db.VarChar(255)              // Titular persuasivo generado por Claude
+  copy        String?   @db.Text                      // Copy principal del post
+  mediaUrl    String?   @db.Text                      // URL de la imagen/video (Text para URLs largas de IA)
+  mediaType   String    @default("image") @db.VarChar(20) // image, video
+  status      String    @default("draft") @db.VarChar(20) // draft, scheduled, published, rejected
+  publishAt   DateTime?                               // Fecha/Hora programada para publicar
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("ads")
+}
+
+model Invoice {
+  id             Int       @id @default(autoincrement())
+  numero         String    @db.VarChar(50)
+  lead_id        Int?
+  client_name    String    @db.VarChar(120)
+  client_email   String?   @db.VarChar(255)
+  client_company String?   @db.VarChar(120)
+  items          Json
+  subtotal       Float     @default(0)
+  tax            Float     @default(0)
+  total          Float     @default(0)
+  due_date       DateTime?
+  notes          String?   @db.Text
+  estado_pago    String    @default("pendiente") @db.VarChar(20) // pendiente, pagado, cancelado
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("invoices")
+}
+

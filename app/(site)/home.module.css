@@ -1,0 +1,506 @@
+.hero {
+    position: relative;
+    padding: 160px 0 100px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.heroGlow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.heroGlow1 {
+    top: -200px;
+    right: -100px;
+    background: #0066FF;
+}
+
+.heroGlow2 {
+    bottom: -200px;
+    left: -100px;
+    background: #00C2FF;
+}
+
+.heroContent {
+    position: relative;
+    z-index: 2;
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.heroLabel {
+    display: inline-block;
+    font-size: var(--font-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent-secondary);
+    margin-bottom: var(--space-lg);
+    padding: 6px 16px;
+    background: var(--accent-subtle);
+    border: 1px solid rgba(0, 102, 255, 0.15);
+    border-radius: var(--radius-full);
+}
+
+.heroTitle {
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    margin-bottom: 24px;
+    color: #ffffff;
+}
+
+.heroTitleAccent {
+    composes: text-gradient from global;
+}
+
+.heroDesc {
+    font-size: 20px;
+    color: var(--text-secondary);
+    max-width: 650px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+}
+
+.heroActions {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Metrics ── */
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-lg);
+    padding: var(--space-3xl) 0;
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.metricItem {
+    text-align: center;
+}
+
+.metricValue {
+    font-size: var(--font-4xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.metricLabel {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-top: var(--space-xs);
+}
+
+/* ── Services ── */
+.servicesContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xl);
+}
+
+.serviceCategory {
+    position: relative;
+}
+
+.categoryHeader {
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.categoryTitle {
+    font-size: var(--font-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent-secondary);
+    opacity: 0.8;
+}
+
+.servicesGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+}
+
+.serviceCard {
+    background: linear-gradient(165deg,
+            rgba(5, 15, 35, 0.95) 0%,
+            rgba(10, 25, 55, 0.9) 50%,
+            rgba(5, 15, 35, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 229, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        0 0 40px rgba(0, 102, 255, 0.05),
+        0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.serviceCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.25), transparent);
+}
+
+.serviceCard::after {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -30%;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 229, 255, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.serviceCard:hover {
+    border-color: rgba(0, 229, 255, 0.3);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow:
+        0 0 60px rgba(0, 102, 255, 0.1),
+        0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+.serviceIcon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.2), rgba(0, 229, 255, 0.15));
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    color: #00E5FF;
+}
+
+.serviceTitle {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+}
+
+.serviceDesc {
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+/* ── Evolution Section ── */
+.evolution {
+    padding: var(--space-4xl) 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.evolutionHeader {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto var(--space-4xl);
+}
+
+.evolutionTitle {
+    font-size: var(--font-4xl);
+    font-weight: 800;
+    margin-bottom: var(--space-md);
+    letter-spacing: -0.02em;
+}
+
+.evolutionSubtitle {
+    font-size: var(--font-lg);
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2xl);
+    position: relative;
+}
+
+.comparison::after {
+    content: 'VS';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 5rem;
+    font-weight: 900;
+    opacity: 0.03;
+    pointer-events: none;
+}
+
+.compCard {
+    padding: var(--space-2xl);
+    border-radius: var(--radius-xl);
+    position: relative;
+}
+
+.compLegacy {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    opacity: 0.6;
+}
+
+.compEngineering {
+    background: var(--glass-bg);
+    border: 1px solid rgba(0, 102, 255, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.compLabel {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: var(--space-xl);
+    padding: 4px 12px;
+    border-radius: 4px;
+}
+
+.compLegacy .compLabel {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-tertiary);
+}
+
+.compEngineering .compLabel {
+    background: var(--accent);
+    color: white;
+}
+
+.compList {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.compItem {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-base);
+    font-weight: 500;
+}
+
+.evolutionFooter {
+    text-align: center;
+    margin-top: var(--space-4xl);
+    padding: var(--space-2xl);
+    background: rgba(0, 102, 255, 0.03);
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(0, 102, 255, 0.1);
+}
+
+.footerPhrase {
+    font-size: var(--font-2xl);
+    font-weight: 700;
+    line-height: 1.4;
+    color: white;
+}
+
+.footerPhraseAccent {
+    display: block;
+    color: var(--accent-secondary);
+    font-size: var(--font-lg);
+    margin-top: var(--space-sm);
+    opacity: 0.8;
+}
+
+/* ── Strong Message ── */
+.strongMessage {
+    text-align: center;
+    padding: var(--space-4xl) 0;
+    border-top: 1px solid var(--glass-border);
+}
+
+.strongLine {
+    font-size: var(--font-2xl);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.strongLineAccent {
+    font-size: var(--font-5xl);
+    font-weight: 900;
+    color: var(--text-primary);
+    margin-top: var(--space-sm);
+    letter-spacing: -0.04em;
+}
+
+/* ── CTA ── */
+.cta {
+    text-align: center;
+    padding: var(--space-2xl) 0;
+}
+
+.ctaTitle {
+    font-size: var(--font-4xl);
+    margin-bottom: var(--space-md);
+}
+
+.ctaDesc {
+    font-size: var(--font-lg);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xl);
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ── ROI Facts Section ── */
+.roi {
+    padding: var(--space-4xl) 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.roiGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xl);
+}
+
+.roiCard {
+    padding: var(--space-2xl);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    text-align: center;
+    transition: all var(--transition-base);
+}
+
+.roiCard:hover {
+    border-color: var(--accent);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(0, 102, 255, 0.1);
+}
+
+.roiStat {
+    font-size: var(--font-5xl);
+    font-weight: 900;
+    color: var(--accent);
+    margin-bottom: var(--space-sm);
+    display: block;
+}
+
+.roiTitle {
+    font-size: var(--font-lg);
+    font-weight: 700;
+    margin-bottom: var(--space-md);
+    color: white;
+}
+
+.roiDesc {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    line-height: 1.6;
+}
+
+.roiLink {
+    display: inline-block;
+    margin-top: var(--space-xl);
+    font-size: var(--font-xs);
+    font-weight: 700;
+    color: var(--accent-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.roiLink:hover {
+    border-color: var(--accent-secondary);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .heroTitle {
+        font-size: var(--font-5xl);
+    }
+
+    .servicesGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .heroTitle {
+        font-size: var(--font-3xl);
+    }
+
+    .heroDesc {
+        font-size: var(--font-base);
+    }
+
+    .heroActions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .servicesGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .metrics {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-xl);
+    }
+
+    .strongLine,
+    .strongLineAccent {
+        font-size: var(--font-2xl);
+    }
+
+    .comparison {
+        grid-template-columns: 1fr;
+    }
+
+    .evolutionHeader {
+        margin-bottom: var(--space-2xl);
+    }
+
+    .footerPhrase {
+        font-size: var(--font-xl);
+    }
+
+    .roiGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics {
+        grid-template-columns: 1fr;
+    }
+}

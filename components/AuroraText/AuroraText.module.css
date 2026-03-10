@@ -1,0 +1,20 @@
+.aurora {
+    display: inline;
+    color: #00BFFF;
+    background: var(--aurora-gradient, linear-gradient(90deg, #0066FF, #00E5FF, #0099FF, #00BFFF));
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: aurora-shimmer var(--aurora-speed, 3s) ease-in-out infinite alternate;
+}
+
+@keyframes aurora-shimmer {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    100% {
+        background-position: 100% 50%;
+    }
+}

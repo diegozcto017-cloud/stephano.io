@@ -1,0 +1,64 @@
+.orbitingCirclesContainer {
+    position: relative;
+    display: flex;
+    height: 500px;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.orbitingCircle {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.child {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: orbit var(--duration) linear infinite;
+}
+
+.reverse {
+    animation-direction: reverse;
+}
+
+
+.orbitPath {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.orbitPathCircle {
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 1;
+    fill: none;
+    stroke-dasharray: 4, 4;
+}
+
+@keyframes orbit {
+    0% {
+        transform: rotate(0deg) translateY(calc(var(--radius) * 1px)) rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg) translateY(calc(var(--radius) * 1px)) rotate(-360deg);
+    }
+}
+
+.centerIcon {
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

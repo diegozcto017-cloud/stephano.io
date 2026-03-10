@@ -1,0 +1,143 @@
+/* ══════════════════════════════════════
+   Glass Module — Vibrant Blue Engineering
+   ══════════════════════════════════════ */
+
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    transition: var(--transition-base);
+}
+
+.glass:hover {
+    border-color: var(--glass-border-hover);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.glassCard {
+    composes: glass;
+    padding: 40px;
+}
+
+/* ── Buttons ── */
+.btnPrimary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 32px;
+    background: var(--accent-gradient);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 15px;
+    border-radius: var(--radius-pill);
+    border: none;
+    transition: var(--transition-base);
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.btnPrimary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--accent-glow);
+    filter: brightness(1.1);
+}
+
+.btnGlass {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 32px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 15px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    transition: var(--transition-base);
+    cursor: pointer;
+}
+
+.btnGlass:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* ── Inputs ── */
+.glassInput {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: #ffffff;
+    font-size: 15px;
+    font-family: inherit;
+    transition: var(--transition-base);
+    outline: none;
+}
+
+.glassInput::placeholder {
+    color: var(--text-tertiary);
+}
+
+.glassInput:focus {
+    border-color: rgba(0, 229, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08);
+    background: rgba(0, 102, 255, 0.04);
+}
+
+/* Select dropdown fix — dark background on native options */
+select.glassInput {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%2300E5FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px;
+    padding-right: 40px;
+    cursor: pointer;
+    background-color: rgba(5, 15, 35, 0.95);
+}
+
+select.glassInput option {
+    background: #0a1930;
+    color: #e0e0e0;
+}
+
+.glassTextarea {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: #ffffff;
+    font-size: 15px;
+    font-family: inherit;
+    transition: var(--transition-base);
+    outline: none;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.glassTextarea::placeholder {
+    color: var(--text-tertiary);
+}
+
+.glassTextarea:focus {
+    border-color: rgba(0, 229, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08);
+    background: rgba(0, 102, 255, 0.04);
+}
+
+/* ── Compact Card ── */
+.glassCardCompact {
+    composes: glass;
+    padding: 24px;
+}
