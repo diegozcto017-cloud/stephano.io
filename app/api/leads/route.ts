@@ -39,7 +39,21 @@ export async function POST(request: NextRequest) {
         const { EmailService } = await import('@/server/services/email.service');
         Promise.all([
             EmailService.sendLeadNotification(lead),
-            EmailService.sendClientConfirmation(lead)
+            EmailService.sendClientConfirmation(lead),
+            // Trigger n8n email outreach sequence if webhook is configured
+            process.env.N8N_WEBHOOK_URL
+                ? fetch(process.env.N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: lead.nombre,
+                        email: lead.email,
+                        business: lead.empresa ?? lead.nombre,
+                        city: 'Costa Rica',
+                        service: lead.tipo_proyecto ?? 'Landing Page',
+                    }),
+                }).catch(err => console.error('[API /leads] n8n webhook error:', err))
+                : Promise.resolve(),
         ]).catch(err => console.error('[API /leads] Email dispatch error:', err));
 
         return NextResponse.json(

@@ -6,7 +6,11 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 export async function verifyAdminPassword(password: string): Promise<boolean> {
-    const email = 'diegozcto017@gmail.com';
+    const email = process.env.ADMIN_EMAIL;
+    if (!email) {
+        console.error('ADMIN_EMAIL not set');
+        return false;
+    }
 
     try {
         // First try to find the user in the database

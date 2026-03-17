@@ -26,6 +26,33 @@ export default function AdminAuth({ children }: { children: ReactNode }) {
         setLoading(false);
     }, []);
 
+    // --- Inactivity Timeout Logica ---
+    useEffect(() => {
+        if (!authenticated) return;
+
+        let timeoutId: NodeJS.Timeout;
+
+        const resetTimer = () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            // 30 minutes of inactivity
+            timeoutId = setTimeout(() => {
+                sessionStorage.removeItem('stephano-admin');
+                setAuthenticated(false);
+                window.location.reload(); // Refresh to ensure state is clean
+            }, 30 * 60 * 1000); 
+        };
+
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+        events.forEach(event => document.addEventListener(event, resetTimer));
+
+        resetTimer(); // Start the timer
+
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            events.forEach(event => document.removeEventListener(event, resetTimer));
+        };
+    }, [authenticated]);
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');

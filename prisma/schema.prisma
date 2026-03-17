@@ -25,6 +25,14 @@ model Lead {
   fecha_creacion    DateTime @default(now())
   fecha_actualizacion DateTime @updatedAt
 
+  // Deal Intelligence fields
+  leadScore       Int?     // 1-100 Deal Intelligence score
+  leadCategory    String?  @db.VarChar(20) // prioritaria, viable, baja
+  scoreFactors    String?  @db.Text // JSON string of scoring factors
+  pipelineStage   String   @default("nuevo_lead") @db.VarChar(30) // nuevo_lead, lead_analizado, lead_calificado, propuesta_enviada, negociacion_activa, contrato_cerrado, contrato_perdido
+  followupDay     Int?     // current followup day (1, 3, 7, 14, 21)
+  followupSentAt  DateTime? // when last followup was sent
+
   @@map("leads")
 }
 
@@ -55,6 +63,56 @@ model Ad {
   updatedAt   DateTime  @updatedAt
 
   @@map("ads")
+}
+
+model ContentPost {
+  id           Int            @id @default(autoincrement())
+  format       String         @db.VarChar(20) // reel, carousel, story
+  topic        String         @db.Text
+  hook         String?        @db.Text
+  body         String?        @db.Text
+  cta          String?        @db.Text
+  script       String?        @db.Text
+  caption      String?        @db.Text
+  hashtags     String?        @db.Text
+  objective    String?        @db.VarChar(80)
+  status       String         @default("idea") @db.VarChar(20) // idea, generated, scheduled, published
+  publishAt    DateTime?
+  sequence     Int?
+  metrics      ContentMetrics?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@map("content_posts")
+}
+
+model ContentMetrics {
+  id              Int         @id @default(autoincrement())
+  postId          Int         @unique
+  post            ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  views           Int         @default(0)
+  retention       Float       @default(0)
+  saves           Int         @default(0)
+  shares          Int         @default(0)
+  followersGained Int         @default(0)
+  comments        Int         @default(0)
+  likes           Int         @default(0)
+  diagnosis       String?     @db.Text
+  recordedAt      DateTime    @default(now())
+
+  @@map("content_metrics")
+}
+
+model GrowthConfig {
+  id             Int      @id @default(autoincrement())
+  followerCount  Int      @default(0)
+  mode           String   @default("MASSIVE_REACH_STARTER") @db.VarChar(50)
+  niche          String   @default("desarrollo web y software") @db.VarChar(100)
+  targetAudience String   @default("empresas y emprendedores en Costa Rica") @db.Text
+  activeChannel  String   @default("instagram") @db.VarChar(20)
+  updatedAt      DateTime @updatedAt
+
+  @@map("growth_config")
 }
 
 model Invoice {

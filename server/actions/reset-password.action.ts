@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import { getPasswordResetTemplate } from '@/lib/email-templates';
 
-const ADMIN_EMAIL = 'diegozcto017@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,

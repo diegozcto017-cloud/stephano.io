@@ -10,10 +10,16 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^3.0.29",
+    "@ai-sdk/openai": "^3.0.41",
+    "@ai-sdk/react": "^3.0.118",
+    "@nanostores/react": "github:ai/react",
     "@prisma/client": "^5.22.0",
     "@remotion/cli": "^4.0.434",
     "@types/nodemailer": "^7.0.11",
+    "ai": "^6.0.116",
     "bcryptjs": "^3.0.3",
+    "dompurify": "^3.3.3",
     "dotenv": "^17.3.1",
     "framer-motion": "^12.35.0",
     "geist": "^1.7.0",
