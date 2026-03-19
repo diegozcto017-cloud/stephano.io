@@ -189,7 +189,7 @@ export default function PropuestasPage() {
         try {
             const res = await fetch('/api/propuesta/generate', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
                 body: JSON.stringify({
                     service: form.service,
                     clientName: form.clientName,
@@ -248,7 +248,7 @@ export default function PropuestasPage() {
         try {
             const res = await fetch('/api/propuesta/send-email', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
                 body: JSON.stringify({
                     toEmail: form.clientEmail,
                     toName: form.clientName,
@@ -279,7 +279,7 @@ export default function PropuestasPage() {
         try {
             const res = await fetch('/api/propuesta/call-script', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
                 body: JSON.stringify({
                     businessName: form.clientName || form.clientCompany,
                     address: searchParams.get('address') || '',
@@ -306,7 +306,7 @@ export default function PropuestasPage() {
         try {
             const res = await fetch('/api/propuesta/track', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
                 body: JSON.stringify({
                     clientName: form.clientName,
                     clientCompany: form.clientCompany,

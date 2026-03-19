@@ -141,7 +141,7 @@ export default function ProspectosPage() {
         try {
             const res = await fetch('/api/leads/hunt', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
                 body: JSON.stringify({ query: q, location, lat, lng, radius, noWebsiteOnly: true }),
                 signal: abortRef.current.signal,
             });
@@ -160,7 +160,7 @@ export default function ProspectosPage() {
         try {
             const res = await fetch('/api/leads', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
                 body: JSON.stringify({
                     nombre: prospect.name, email: `pendiente@${prospect.name.toLowerCase().replace(/\s+/g, '')}.com`,
                     telefono: prospect.phone || '', tipo_proyecto: 'Landing Page',
@@ -179,7 +179,7 @@ export default function ProspectosPage() {
         try {
             const res = await fetch('/api/calls/outbound', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
                 body: JSON.stringify({
                     phone: prospect.phone,
                     prospectName: prospect.name,
@@ -210,7 +210,7 @@ export default function ProspectosPage() {
         if (!added.has(prospect.place_id)) {
             fetch('/api/leads', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
                 body: JSON.stringify({
                     nombre: prospect.name,
                     email: `pendiente@${prospect.name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}.com`,
