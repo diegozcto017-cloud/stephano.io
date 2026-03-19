@@ -2,6 +2,20 @@
 // Replaces Hostinger SMTP which is blocked from Vercel servers
 
 const RESEND_API = 'https://api.resend.com/emails';
+
+/** Convert Spanish/accented characters to HTML entities for email compatibility */
+function encodeForEmail(text: string): string {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/á/g, '&aacute;').replace(/Á/g, '&Aacute;')
+        .replace(/é/g, '&eacute;').replace(/É/g, '&Eacute;')
+        .replace(/í/g, '&iacute;').replace(/Í/g, '&Iacute;')
+        .replace(/ó/g, '&oacute;').replace(/Ó/g, '&Oacute;')
+        .replace(/ú/g, '&uacute;').replace(/Ú/g, '&Uacute;')
+        .replace(/ü/g, '&uuml;').replace(/Ü/g, '&Uuml;')
+        .replace(/ñ/g, '&ntilde;').replace(/Ñ/g, '&Ntilde;')
+        .replace(/¿/g, '&iquest;').replace(/¡/g, '&iexcl;');
+}
 // Use verified Resend domain until stephano.io domain is verified in Resend dashboard
 const FROM = process.env.RESEND_DOMAIN_VERIFIED === 'true'
     ? 'Stephano.io <info@stephano.io>'
@@ -19,7 +33,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json; charset=utf-8',
         },
         body: JSON.stringify({ from: FROM, to, subject, html }),
     });
@@ -53,7 +67,7 @@ export class EmailService {
 
         const html = `<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Inter',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 20px;">
     <tr><td align="center">
@@ -135,7 +149,7 @@ export class EmailService {
 
         const html = `<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Inter',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 20px;">
     <tr><td align="center">
@@ -199,6 +213,113 @@ export class EmailService {
         } catch (err) {
             console.error('[EmailService] sendClientConfirmation error:', err);
         }
+    }
+
+    static async sendProposalToProspect(params: {
+        toEmail: string;
+        toName: string;
+        toCompany?: string;
+        service: string;
+        total: number;
+        proposalText: string;
+        timeline?: string;
+    }) {
+        const { toEmail, toName, toCompany, service, total, proposalText, timeline } = params;
+        const refId = `PROP-${Date.now().toString().slice(-6)}`;
+        const safeName = encodeForEmail(toName);
+        const safeCompany = toCompany ? encodeForEmail(toCompany) : '';
+        const safeService = encodeForEmail(service);
+        const dateStr = new Date().toLocaleDateString('es-CR', { year: 'numeric', month: 'long', day: 'numeric' });
+        const fmtTotal = `$${total.toLocaleString('es', { minimumFractionDigits: 0 })} USD`;
+
+        // Convert plain text proposal to basic HTML paragraphs
+        const proposalHtml = encodeForEmail(proposalText)
+            .split('\n')
+            .map(line => line.trim())
+            .filter(Boolean)
+            .map(line => line.startsWith('•') || line.startsWith('-')
+                ? `<li style="color:rgba(255,255,255,0.75);font-size:14px;line-height:1.7;margin-bottom:6px;">${line.replace(/^[•\-]\s*/, '')}</li>`
+                : `<p style="color:rgba(255,255,255,0.8);font-size:14px;line-height:1.8;margin:0 0 12px;">${line}</p>`
+            )
+            .join('\n');
+
+        const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Propuesta Stephano.io</title></head>
+<body style="margin:0;padding:0;background:#0a0a0f;font-family:'Inter',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0f;padding:32px 16px;">
+<tr><td align="center">
+<table width="620" cellpadding="0" cellspacing="0" style="background:#0d0d14;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);">
+
+  <!-- Header -->
+  <tr><td style="background:linear-gradient(135deg,#0066FF 0%,#0044CC 50%,#00E5FF 100%);padding:36px 48px;">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td>
+        <div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-0.5px;">Stephano.io</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px;">Propuesta Comercial</div>
+      </td>
+      <td align="right">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);">${dateStr}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;">Ref: ${refId}</div>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <!-- To / Amount bar -->
+  <tr><td style="background:rgba(0,102,255,0.08);border-bottom:1px solid rgba(0,102,255,0.15);padding:20px 48px;">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td>
+        <div style="font-size:11px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Preparada para</div>
+        <div style="font-size:17px;font-weight:800;color:#fff;">${safeName}</div>
+        ${toCompany && toCompany !== toName ? `<div style="font-size:13px;color:rgba(255,255,255,0.45);margin-top:2px;">${safeCompany}</div>` : ''}
+      </td>
+      <td align="right">
+        <div style="font-size:11px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Inversión total</div>
+        <div style="font-size:24px;font-weight:900;color:#00E5FF;">${fmtTotal}</div>
+        ${timeline ? `<div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;">Entrega: ${timeline}</div>` : ''}
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <!-- Service pill -->
+  <tr><td style="padding:24px 48px 0;">
+    <span style="display:inline-block;background:rgba(0,102,255,0.15);color:#00E5FF;border:1px solid rgba(0,229,255,0.25);border-radius:100px;padding:6px 18px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">${safeService}</span>
+  </td></tr>
+
+  <!-- Proposal body -->
+  <tr><td style="padding:24px 48px 36px;">
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:28px 32px;">
+      ${proposalHtml}
+    </div>
+  </td></tr>
+
+  <!-- CTA -->
+  <tr><td style="padding:0 48px 40px;">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td align="center">
+        <a href="https://wa.me/50671164454" style="display:inline-block;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;text-decoration:none;padding:14px 36px;border-radius:100px;font-size:14px;font-weight:800;margin-right:12px;">Conversemos por WhatsApp →</a>
+      </td>
+    </tr></table>
+    <div style="text-align:center;margin-top:16px;font-size:13px;color:rgba(255,255,255,0.35);">O responde directamente a este correo · info@stephano.io</div>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.05);padding:20px 48px;text-align:center;">
+    <div style="font-size:11px;color:rgba(255,255,255,0.2);">Stephano.io — Agencia de Desarrollo Web · Costa Rica · stephano.io</div>
+    <div style="font-size:10px;color:rgba(255,255,255,0.1);margin-top:4px;">Esta propuesta es válida por 15 días · ${refId}</div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+        await sendEmail(toEmail, `Propuesta ${service} — Stephano.io (${fmtTotal})`, html);
     }
 
     static async sendCompletionNotification(lead: EmailLead) {

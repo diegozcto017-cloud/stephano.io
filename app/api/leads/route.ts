@@ -54,6 +54,20 @@ export async function POST(request: NextRequest) {
                     }),
                 }).catch(err => console.error('[API /leads] n8n webhook error:', err))
                 : Promise.resolve(),
+            // Trigger n8n auto-pipeline workflow
+            process.env.N8N_WEBHOOK_URL
+                ? fetch(`${process.env.N8N_WEBHOOK_URL.replace('lead-email-outreach', 'new-lead-pipeline')}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        leadId: lead.id,
+                        name: lead.nombre,
+                        email: lead.email,
+                        phone: lead.telefono || '',
+                        service: lead.tipo_proyecto,
+                    }),
+                }).catch(err => console.error('[API /leads] pipeline webhook error:', err))
+                : Promise.resolve(),
         ]).catch(err => console.error('[API /leads] Email dispatch error:', err));
 
         return NextResponse.json(

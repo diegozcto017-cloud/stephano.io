@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { HuntResult } from '@/app/api/leads/hunt/route';
 
 /* ── Costa Rica Geographic Data ── */
@@ -52,16 +53,31 @@ const CANTON_COORDS: Record<string, { lat: number; lng: number }> = {
 
 const INDUSTRY_PRESETS = [
     { label: 'Restaurantes', icon: '🍽️', query: 'restaurantes' },
-    { label: 'Salones Belleza', icon: '💅', query: 'salones de belleza peluquerías' },
-    { label: 'Clínicas Dentales', icon: '🦷', query: 'clínicas dentales odontólogos' },
-    { label: 'Gimnasios', icon: '💪', query: 'gimnasios fitness centros deportivos' },
-    { label: 'Ferreterías', icon: '🔧', query: 'ferreterías materiales construcción' },
-    { label: 'Abogados', icon: '⚖️', query: 'despachos de abogados bufetes' },
-    { label: 'Veterinarias', icon: '🐾', query: 'clínicas veterinarias mascotas' },
-    { label: 'Contadores', icon: '📊', query: 'contadores públicos auditorías' },
+    { label: 'Pizzerías', icon: '🍕', query: 'pizzerías pizza' },
+    { label: 'Rest. Italiano', icon: '🇮🇹', query: 'restaurante italiano pasta' },
+    { label: 'Catering', icon: '🎂', query: 'servicio de catering eventos banquetes' },
     { label: 'Hoteles', icon: '🏨', query: 'hoteles hostales alojamiento' },
+    { label: 'Salones Belleza', icon: '💅', query: 'salones de belleza peluquerías' },
+    { label: 'Barberías', icon: '✂️', query: 'barberías barbero' },
+    { label: 'Clínicas Dentales', icon: '🦷', query: 'clínicas dentales odontólogos dentistas' },
+    { label: 'Médicos', icon: '🩺', query: 'consultorios médicos clínicas médicas' },
+    { label: 'Veterinarias', icon: '🐾', query: 'clínicas veterinarias veterinario mascotas' },
+    { label: 'Hosp. Veterinario', icon: '🏥', query: 'hospital veterinario animales' },
+    { label: 'Tienda Mascotas', icon: '🐕', query: 'tienda productos mascotas animales' },
+    { label: 'Paseador Perros', icon: '🦮', query: 'paseador de perros servicio mascotas' },
+    { label: 'Talleres Autos', icon: '🚗', query: 'talleres mecánicos automóviles reparación' },
+    { label: 'Talleres Motos', icon: '🏍️', query: 'talleres mecánicos motocicletas reparación' },
+    { label: 'Baterías', icon: '🔋', query: 'tienda baterías vehículos' },
+    { label: 'Perfumerías', icon: '🌸', query: 'perfumerías cosméticos tienda belleza' },
+    { label: 'Gimnasios', icon: '💪', query: 'gimnasios fitness centros deportivos' },
+    { label: 'Cancha Fútbol 5', icon: '⚽', query: 'canchas fútbol 5 sintético alquiler' },
+    { label: 'Cancha Tenis', icon: '🎾', query: 'canchas tenis club deportivo' },
+    { label: 'Cibercafés', icon: '💻', query: 'cibercafé internet café computadoras' },
+    { label: 'Ferreterías', icon: '🔧', query: 'ferreterías materiales construcción' },
+    { label: 'Abogados', icon: '⚖️', query: 'despachos de abogados bufetes jurídicos' },
+    { label: 'Contadores', icon: '📊', query: 'contadores públicos auditorías contabilidad' },
+    { label: 'Oficinas Empresa', icon: '🏢', query: 'oficinas empresas servicios empresariales' },
     { label: 'Farmacias', icon: '💊', query: 'farmacias boticas' },
-    { label: 'Talleres', icon: '🚗', query: 'talleres mecánicos automóviles' },
     { label: 'Pulperías', icon: '🛒', query: 'pulperías minisupers tiendas' },
 ];
 
@@ -74,15 +90,27 @@ function getScore(r: HuntResult): { label: string; color: string; reason: string
     return { label: 'COLD', color: '#0066FF', reason: 'Sin web detectada' };
 }
 
+const RADIUS_OPTIONS = [
+    { label: '5 km', value: 5000 },
+    { label: '10 km', value: 10000 },
+    { label: '20 km', value: 20000 },
+    { label: '40 km', value: 40000 },
+    { label: '60 km', value: 60000 },
+    { label: '100 km', value: 100000 },
+];
+
 export default function ProspectosPage() {
+    const router = useRouter();
     const [query, setQuery] = useState('');
     const [province, setProvince] = useState('');
     const [canton, setCanton] = useState('Todos');
+    const [radius, setRadius] = useState(40000);
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<HuntResult[]>([]);
     const [stats, setStats] = useState<{ total: number; noWebsite: number } | null>(null);
     const [error, setError] = useState('');
     const [added, setAdded] = useState<Set<string>>(new Set());
+    const [proposing, setProposing] = useState<string | null>(null);
     const abortRef = useRef<AbortController | null>(null);
 
     const cantons = province ? CR_GEO[province]?.cantons || ['Todos'] : ['Todos'];
@@ -112,7 +140,7 @@ export default function ProspectosPage() {
             const res = await fetch('/api/leads/hunt', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: q, location, lat, lng, noWebsiteOnly: true }),
+                body: JSON.stringify({ query: q, location, lat, lng, radius, noWebsiteOnly: true }),
                 signal: abortRef.current.signal,
             });
             const data = await res.json();
@@ -140,6 +168,35 @@ export default function ProspectosPage() {
             });
             if (res.ok) setAdded(prev => new Set(prev).add(prospect.place_id));
         } catch { /* silent */ }
+    }
+
+    async function handleGenerarPropuesta(prospect: HuntResult) {
+        setProposing(prospect.place_id);
+        // Add to CRM simultaneously (fire and forget)
+        if (!added.has(prospect.place_id)) {
+            fetch('/api/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombre: prospect.name,
+                    email: `pendiente@${prospect.name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}.com`,
+                    telefono: prospect.phone || '',
+                    tipo_proyecto: 'Landing Page',
+                    mensaje: `Prospecto Google Maps. Dirección: ${prospect.address}. Rating: ${prospect.rating || 'N/A'} (${prospect.user_ratings_total || 0} reseñas). Sin sitio web.`,
+                    estado: 'nuevo',
+                }),
+            }).then(r => { if (r.ok) setAdded(prev => new Set(prev).add(prospect.place_id)); }).catch(() => {});
+        }
+        // Navigate to proposals page with pre-filled data
+        const params = new URLSearchParams({
+            clientName: prospect.name,
+            clientCompany: prospect.name,
+            clientPhone: prospect.phone || '',
+            address: prospect.address,
+            rating: String(prospect.rating || ''),
+            reviews: String(prospect.user_ratings_total || 0),
+        });
+        router.push(`/admin/propuestas?${params.toString()}`);
     }
 
     const selectStyle = { background: '#0A0A0F', border: '1px solid #2A2A3E', borderRadius: 10, padding: '0.65rem 1rem', color: '#fff', fontSize: '0.875rem', outline: 'none', cursor: 'pointer' };
@@ -189,15 +246,19 @@ export default function ProspectosPage() {
                     </select>
                 </div>
 
-                {/* Query row */}
+                {/* Query + Radius row */}
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                     <input
                         value={query}
                         onChange={e => setQuery(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleHunt()}
-                        placeholder="Ej: restaurantes, abogados, clínicas dentales..."
-                        style={{ flex: '1 1 280px', background: '#0A0A0F', border: '1px solid #2A2A3E', borderRadius: 10, padding: '0.65rem 1rem', color: '#fff', fontSize: '0.875rem', outline: 'none' }}
+                        placeholder="Ej: restaurantes, clínicas dentales, barberías..."
+                        style={{ flex: '1 1 240px', background: '#0A0A0F', border: '1px solid #2A2A3E', borderRadius: 10, padding: '0.65rem 1rem', color: '#fff', fontSize: '0.875rem', outline: 'none' }}
                     />
+                    <select value={radius} onChange={e => setRadius(Number(e.target.value))}
+                        style={{ ...selectStyle, flex: '0 0 110px' }}>
+                        {RADIUS_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                    </select>
                     <button
                         onClick={() => handleHunt()}
                         disabled={loading || !query.trim()}
@@ -271,19 +332,31 @@ export default function ProspectosPage() {
                                         {r.phone && <a href={`tel:${r.phone}`} style={{ fontSize: '0.75rem', color: '#0066FF', textDecoration: 'none' }}>{r.phone}</a>}
                                     </div>
                                     <p style={{ margin: 0, fontSize: '0.7rem', color: '#444' }}>{score.reason}</p>
-                                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: 'auto' }}>
-                                        <button onClick={() => handleAddToCRM(r)} disabled={isAdded}
-                                            style={{ flex: 1, background: isAdded ? '#1a2a1a' : 'linear-gradient(135deg, #0066FF, #00E5FF)', border: isAdded ? '1px solid #2a4a2a' : 'none', borderRadius: 8, padding: '0.45rem', color: isAdded ? '#4a8a4a' : '#fff', fontSize: '0.75rem', fontWeight: 600, cursor: isAdded ? 'default' : 'pointer' }}>
-                                            {isAdded ? '✓ En CRM' : '+ Agregar al CRM'}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: 'auto' }}>
+                                        {/* Primary CTA */}
+                                        <button
+                                            onClick={() => handleGenerarPropuesta(r)}
+                                            disabled={proposing === r.place_id}
+                                            style={{ width: '100%', background: proposing === r.place_id ? '#1E1E2E' : 'linear-gradient(135deg, #0066FF, #00E5FF)', border: 'none', borderRadius: 8, padding: '0.55rem', color: '#fff', fontSize: '0.8rem', fontWeight: 700, cursor: proposing === r.place_id ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                                        >
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                            {proposing === r.place_id ? 'Abriendo...' : 'Generar Propuesta'}
                                         </button>
-                                        <Link href={`/admin/ads?prefill=${encodeURIComponent(`Anuncio para ${r.name} — negocio local sin sitio web en ${r.address}, ofrecerles landing page profesional desde $350 USD`)}`}
-                                            style={{ background: '#1E1E2E', borderRadius: 8, padding: '0.45rem 0.65rem', color: '#aaa', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Ad
-                                        </Link>
-                                        <a href={`https://www.google.com/maps/place/?q=place_id:${r.place_id}`} target="_blank" rel="noopener noreferrer"
-                                            style={{ background: '#1E1E2E', borderRadius: 8, padding: '0.45rem 0.65rem', color: '#aaa', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Maps
-                                        </a>
+                                        {/* Secondary row */}
+                                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                            <button onClick={() => handleAddToCRM(r)} disabled={isAdded}
+                                                style={{ flex: 1, background: isAdded ? '#1a2a1a' : '#1E1E2E', border: isAdded ? '1px solid #2a4a2a' : '1px solid #2A2A3E', borderRadius: 8, padding: '0.4rem', color: isAdded ? '#4a8a4a' : '#888', fontSize: '0.7rem', fontWeight: 600, cursor: isAdded ? 'default' : 'pointer' }}>
+                                                {isAdded ? '✓ En CRM' : '+ CRM'}
+                                            </button>
+                                            <a href={`https://www.google.com/maps/place/?q=place_id:${r.place_id}`} target="_blank" rel="noopener noreferrer"
+                                                style={{ flex: 1, background: '#1E1E2E', border: '1px solid #2A2A3E', borderRadius: 8, padding: '0.4rem', color: '#888', fontSize: '0.7rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Maps
+                                            </a>
+                                            <Link href={`/admin/ads?prefill=${encodeURIComponent(`Anuncio para ${r.name} — negocio local sin sitio web`)}`}
+                                                style={{ flex: 1, background: '#1E1E2E', border: '1px solid #2A2A3E', borderRadius: 8, padding: '0.4rem', color: '#888', fontSize: '0.7rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Ad
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
                             );

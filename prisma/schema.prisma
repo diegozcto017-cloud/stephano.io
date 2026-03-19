@@ -115,6 +115,28 @@ model GrowthConfig {
   @@map("growth_config")
 }
 
+model Propuesta {
+  id            Int       @id @default(autoincrement())
+  token         String?   @unique @default(cuid())
+  leadId        Int?
+  clientName    String    @db.VarChar(120)
+  clientCompany String?   @db.VarChar(120)
+  clientPhone   String?   @db.VarChar(30)
+  clientEmail   String?   @db.VarChar(255)
+  service       String    @db.VarChar(80)
+  total         Int
+  proposalText  String    @db.Text
+  estado        String    @default("enviada") @db.VarChar(30)
+  sentVia       String?   @db.VarChar(20)
+  notas         String?   @db.Text
+  followupAt    DateTime?
+  viewedAt      DateTime?
+  sentAt        DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("propuestas")
+}
+
 model Invoice {
   id             Int       @id @default(autoincrement())
   numero         String    @db.VarChar(50)
