@@ -113,6 +113,11 @@ export default function ProspectosPage() {
     const [proposing, setProposing] = useState<string | null>(null);
     const [calling, setCalling] = useState<string | null>(null);
     const [callResult, setCallResult] = useState<Record<string, 'calling' | 'done' | 'error'>>({});
+    const [pitching, setPitching] = useState<string | null>(null);
+    const [pitchData, setPitchData] = useState<Record<string, { pitch: string; industry: string; competitor: string; painPoints: string[] }>>({});
+    const [enriching, setEnriching] = useState<string | null>(null);
+    const [enrichData, setEnrichData] = useState<Record<string, { openingHours: string[]; googleMapsUrl: string; photos: number; instagramSearch: string; facebookSearch: string; instagramGuess: string; signals: string[] }>>({});
+    const [expandedPitch, setExpandedPitch] = useState<Set<string>>(new Set());
     const abortRef = useRef<AbortController | null>(null);
 
     const cantons = province ? CR_GEO[province]?.cantons || ['Todos'] : ['Todos'];
@@ -201,6 +206,58 @@ export default function ProspectosPage() {
             setCallResult(prev => ({ ...prev, [prospect.place_id]: 'error' }));
         } finally {
             setCalling(null);
+        }
+    }
+
+    async function handleGetPitch(prospect: HuntResult) {
+        if (pitchData[prospect.place_id]) {
+            setExpandedPitch(prev => {
+                const next = new Set(prev);
+                next.has(prospect.place_id) ? next.delete(prospect.place_id) : next.add(prospect.place_id);
+                return next;
+            });
+            return;
+        }
+        setPitching(prospect.place_id);
+        try {
+            const res = await fetch('/api/leads/pitch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
+                body: JSON.stringify({
+                    businessName: prospect.name,
+                    address: prospect.address,
+                    rating: prospect.rating,
+                    reviews: prospect.user_ratings_total,
+                    types: prospect.types || [],
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setPitchData(prev => ({ ...prev, [prospect.place_id]: data }));
+                setExpandedPitch(prev => new Set(prev).add(prospect.place_id));
+            }
+        } catch { /* silent */ } finally {
+            setPitching(null);
+        }
+    }
+
+    async function handleEnrich(prospect: HuntResult) {
+        if (enrichData[prospect.place_id]) return;
+        setEnriching(prospect.place_id);
+        try {
+            const res = await fetch('/api/leads/enrich', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
+                body: JSON.stringify({
+                    businessName: prospect.name,
+                    address: prospect.address,
+                    placeId: prospect.place_id,
+                }),
+            });
+            const data = await res.json();
+            if (data.success) setEnrichData(prev => ({ ...prev, [prospect.place_id]: data }));
+        } catch { /* silent */ } finally {
+            setEnriching(null);
         }
     }
 
@@ -401,21 +458,65 @@ export default function ProspectosPage() {
                                                     : 'Llamar IA'}
                                             </button>
                                         </div>
-                                        {/* Secondary row */}
+                                        {/* Pitch + Enrich row */}
                                         <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                            <button
+                                                onClick={() => { handleGetPitch(r); handleEnrich(r); }}
+                                                disabled={pitching === r.place_id}
+                                                style={{ flex: 2, background: pitchData[r.place_id] ? (expandedPitch.has(r.place_id) ? '#2a1a4a' : '#1a1a3a') : '#1E1E2E', border: pitchData[r.place_id] ? '1px solid #7C3AED44' : '1px solid #2A2A3E', borderRadius: 8, padding: '0.4rem 0.6rem', color: pitchData[r.place_id] ? '#A78BFA' : '#888', fontSize: '0.7rem', fontWeight: 600, cursor: pitching === r.place_id ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+                                            >
+                                                {pitching === r.place_id ? '⚡ Generando...' : pitchData[r.place_id] ? (expandedPitch.has(r.place_id) ? '▲ Pitch IA' : '▼ Pitch IA') : '⚡ Pitch IA'}
+                                            </button>
                                             <button onClick={() => handleAddToCRM(r)} disabled={isAdded}
                                                 style={{ flex: 1, background: isAdded ? '#1a2a1a' : '#1E1E2E', border: isAdded ? '1px solid #2a4a2a' : '1px solid #2A2A3E', borderRadius: 8, padding: '0.4rem', color: isAdded ? '#4a8a4a' : '#888', fontSize: '0.7rem', fontWeight: 600, cursor: isAdded ? 'default' : 'pointer' }}>
-                                                {isAdded ? '✓ En CRM' : '+ CRM'}
+                                                {isAdded ? '✓ CRM' : '+ CRM'}
                                             </button>
                                             <a href={`https://www.google.com/maps/place/?q=place_id:${r.place_id}`} target="_blank" rel="noopener noreferrer"
-                                                style={{ flex: 1, background: '#1E1E2E', border: '1px solid #2A2A3E', borderRadius: 8, padding: '0.4rem', color: '#888', fontSize: '0.7rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Maps
+                                                style={{ flex: 1, background: '#1E1E2E', border: '1px solid #2A2A3E', borderRadius: 8, padding: '0.4rem', color: '#888', fontSize: '0.7rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                Maps
                                             </a>
-                                            <Link href={`/admin/ads?prefill=${encodeURIComponent(`Anuncio para ${r.name} — negocio local sin sitio web`)}`}
-                                                style={{ flex: 1, background: '#1E1E2E', border: '1px solid #2A2A3E', borderRadius: 8, padding: '0.4rem', color: '#888', fontSize: '0.7rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Ad
-                                            </Link>
                                         </div>
+                                        {/* Pitch expanded panel */}
+                                        {expandedPitch.has(r.place_id) && pitchData[r.place_id] && (
+                                            <div style={{ background: '#0d0d1a', border: '1px solid #7C3AED33', borderRadius: 8, padding: '0.75rem', marginTop: 2 }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                                    <span style={{ fontSize: '0.65rem', color: '#7C3AED', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
+                                                        {pitchData[r.place_id].industry} · vs {pitchData[r.place_id].competitor}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => navigator.clipboard.writeText(pitchData[r.place_id].pitch)}
+                                                        style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: '0.65rem', padding: '2px 6px' }}
+                                                    >
+                                                        📋 copiar
+                                                    </button>
+                                                </div>
+                                                <p style={{ margin: 0, fontSize: '0.78rem', color: '#ccc', lineHeight: 1.6, fontStyle: 'italic' }}>
+                                                    &ldquo;{pitchData[r.place_id].pitch}&rdquo;
+                                                </p>
+                                                {/* Social search links from enrich */}
+                                                {enrichData[r.place_id] && (
+                                                    <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                                        <a href={enrichData[r.place_id].instagramSearch} target="_blank" rel="noopener noreferrer"
+                                                            style={{ fontSize: '0.65rem', color: '#E1306C', background: '#E1306C11', border: '1px solid #E1306C33', borderRadius: 5, padding: '2px 8px', textDecoration: 'none' }}>
+                                                            📸 Buscar Instagram
+                                                        </a>
+                                                        <a href={enrichData[r.place_id].facebookSearch} target="_blank" rel="noopener noreferrer"
+                                                            style={{ fontSize: '0.65rem', color: '#1877F2', background: '#1877F211', border: '1px solid #1877F233', borderRadius: 5, padding: '2px 8px', textDecoration: 'none' }}>
+                                                            👤 Buscar Facebook
+                                                        </a>
+                                                        <a href={enrichData[r.place_id].instagramGuess} target="_blank" rel="noopener noreferrer"
+                                                            style={{ fontSize: '0.65rem', color: '#aaa', background: '#ffffff0a', border: '1px solid #333', borderRadius: 5, padding: '2px 8px', textDecoration: 'none' }}>
+                                                            IG directo
+                                                        </a>
+                                                        {enrichData[r.place_id].signals.map(s => (
+                                                            <span key={s} style={{ fontSize: '0.62rem', color: '#888', background: '#1E1E2E', borderRadius: 5, padding: '2px 6px' }}>
+                                                                {s}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             );
