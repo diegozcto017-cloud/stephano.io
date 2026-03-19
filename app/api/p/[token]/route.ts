@@ -4,12 +4,13 @@ import { getSecurityHeaders } from '@/server/middlewares/security';
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { token: string } }
+    { params }: { params: Promise<{ token: string }> }
 ) {
+    const { token } = await params;
     const headers = getSecurityHeaders();
     try {
         const propuesta = await prisma.propuesta.findUnique({
-            where: { token: params.token },
+            where: { token },
             select: {
                 id: true,
                 token: true,
@@ -30,7 +31,7 @@ export async function GET(
         // Mark as viewed on first access
         if (!propuesta.viewedAt) {
             await prisma.propuesta.update({
-                where: { token: params.token },
+                where: { token },
                 data: { viewedAt: new Date() },
             });
         }
