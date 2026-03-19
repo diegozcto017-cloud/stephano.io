@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BASE_URL = process.env.APP_URL || 'https://stephano.io';
+const BASE_URL = (process.env.APP_URL || 'https://stephano.io').trim();
 
 // Initial TwiML — greets prospect, starts gathering speech
 export async function GET(req: NextRequest) {

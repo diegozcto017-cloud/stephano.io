@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
         if (!phone) return NextResponse.json({ success: false, error: 'Teléfono requerido' }, { status: 400 });
 
-        const baseUrl = process.env.APP_URL || 'https://stephano.io';
+        const baseUrl = (process.env.APP_URL || 'https://stephano.io').trim();
 
         const params = new URLSearchParams({
             prospectName: prospectName || '',

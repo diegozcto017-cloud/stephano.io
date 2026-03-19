@@ -3,7 +3,7 @@ import { createGroq } from '@ai-sdk/groq';
 import { generateText } from 'ai';
 
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY! });
-const BASE_URL = process.env.APP_URL || 'https://stephano.io';
+const BASE_URL = (process.env.APP_URL || 'https://stephano.io').trim();
 
 const SYSTEM_PROMPT = (businessName: string, address: string, rating: string, reviews: string, proposalUrl: string) => `
 Sos Valeria, representante de ventas de Stephano.io, agencia de desarrollo web en Costa Rica.
