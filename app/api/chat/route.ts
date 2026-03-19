@@ -66,10 +66,25 @@ export async function POST(req: Request) {
           }),
           execute: async (input) => {
             const { nombre, empresa, email, tipo_proyecto, presupuesto_estimado, presupuesto_del_cliente, features, resumen } = input;
-            // Here we could call our database or email service. 
-            // For now we just return a success message so the AI can say goodbye.
-            console.log('[AI LEAD CAPTURED]', { nombre, email, empresa, tipo_proyecto });
-            
+            try {
+              const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://stephano.io';
+              await fetch(`${baseUrl}/api/leads`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  nombre,
+                  empresa: empresa || null,
+                  email,
+                  tipo_proyecto,
+                  presupuesto_rango: presupuesto_estimado,
+                  mensaje: `${resumen}${presupuesto_del_cliente ? ` | Presupuesto cliente: ${presupuesto_del_cliente}` : ''}${features?.length ? ` | Features: ${features.join(', ')}` : ''}`,
+                  urgencia: 'media',
+                  fuente: 'chatbot',
+                }),
+              });
+            } catch (err) {
+              console.error('[captureLead] Error saving lead:', err);
+            }
             return {
               success: true,
               message: 'Lead captured successfully. The AI should now tell the user that the team has received their info and will contact them shortly.',
@@ -82,9 +97,7 @@ export async function POST(req: Request) {
 
     return result.toUIMessageStreamResponse();
   } catch (error) {
-    if (error instanceof Error) {
-      return new Response(error.message + '\n' + error.stack, { status: 500 });
-    }
-    return new Response(String(error), { status: 500 });
+    console.error('[chat]', error);
+    return new Response('Error interno del servidor.', { status: 500 });
   }
 }

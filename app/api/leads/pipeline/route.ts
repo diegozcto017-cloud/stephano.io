@@ -14,6 +14,10 @@ const VALID_STAGES = [
 ];
 
 export async function PATCH(req: NextRequest) {
+    const authHeader = req.headers.get('x-admin-key');
+    if (!process.env.ADMIN_API_KEY || authHeader !== process.env.ADMIN_API_KEY) {
+        return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+    }
     try {
         const body = await req.json();
         const { leadId, pipelineStage } = body;

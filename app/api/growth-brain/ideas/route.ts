@@ -4,6 +4,10 @@ import { generateContentIdeas } from '@/server/services/growth-brain.service';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+    const authHeader = req.headers.get('x-admin-key');
+    if (!process.env.ADMIN_API_KEY || authHeader !== process.env.ADMIN_API_KEY) {
+        return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+    }
     const body = await req.json();
     const { niche, audience, count = 8 } = body;
 

@@ -7,6 +7,10 @@ const prisma = new PrismaClient();
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+    const authHeader = req.headers.get('x-admin-key');
+    if (!process.env.ADMIN_API_KEY || authHeader !== process.env.ADMIN_API_KEY) {
+        return new Response(JSON.stringify({ success: false, error: 'No autorizado' }), { status: 401 });
+    }
     const encoder = new TextEncoder();
     const body = await req.json();
     const { idea, format, objective, sequenceNumber, save = true } = body;

@@ -8,6 +8,10 @@ const client = twilio(
 );
 
 export async function POST(req: NextRequest) {
+    const authHeader = req.headers.get('x-admin-key');
+    if (!process.env.ADMIN_API_KEY || authHeader !== process.env.ADMIN_API_KEY) {
+        return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+    }
     try {
         const { phone, prospectName, businessName, address, rating, reviews, proposalUrl } = await req.json();
 

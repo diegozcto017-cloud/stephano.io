@@ -17,6 +17,10 @@ export interface HuntResult {
 }
 
 export async function POST(req: NextRequest) {
+    const authHeader = req.headers.get('x-admin-key');
+    if (!process.env.ADMIN_API_KEY || authHeader !== process.env.ADMIN_API_KEY) {
+        return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+    }
     try {
         const { query, location = 'Costa Rica', radius = 40000, noWebsiteOnly = true, lat, lng } = await req.json();
 

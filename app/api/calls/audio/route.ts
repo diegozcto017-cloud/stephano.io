@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 const VOICE_ID = 'EXAVITQu4vr4xnSDxMaL'; // Bella — works great in Spanish
 
 export async function GET(req: NextRequest) {
-    const text = req.nextUrl.searchParams.get('text');
+    let text = req.nextUrl.searchParams.get('text');
     if (!text) return new NextResponse('Missing text', { status: 400 });
+    if (text.length > 500) text = text.slice(0, 500);
 
     try {
         const response = await fetch(

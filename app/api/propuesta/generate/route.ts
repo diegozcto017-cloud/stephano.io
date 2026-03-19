@@ -20,6 +20,10 @@ const EXTRAS_MAP: Record<string, number> = {
 };
 
 export async function POST(req: NextRequest) {
+    const authHeader = req.headers.get('x-admin-key');
+    if (!process.env.ADMIN_API_KEY || authHeader !== process.env.ADMIN_API_KEY) {
+        return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+    }
     try {
         const { service, clientName, clientCompany, description, timeline, extras, total } = await req.json();
 

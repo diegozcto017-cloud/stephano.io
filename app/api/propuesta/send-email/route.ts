@@ -5,6 +5,10 @@ import { getSecurityHeaders } from '@/server/middlewares/security';
 
 export async function POST(req: NextRequest) {
     const headers = getSecurityHeaders();
+    const authHeader = req.headers.get('x-admin-key');
+    if (!process.env.ADMIN_API_KEY || authHeader !== process.env.ADMIN_API_KEY) {
+        return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401, headers });
+    }
     try {
         const {
             toEmail, toName, toCompany, clientPhone, service, total,
