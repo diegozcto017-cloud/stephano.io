@@ -111,6 +111,8 @@ export default function ProspectosPage() {
     const [error, setError] = useState('');
     const [added, setAdded] = useState<Set<string>>(new Set());
     const [proposing, setProposing] = useState<string | null>(null);
+    const [calling, setCalling] = useState<string | null>(null);
+    const [callResult, setCallResult] = useState<Record<string, 'calling' | 'done' | 'error'>>({});
     const abortRef = useRef<AbortController | null>(null);
 
     const cantons = province ? CR_GEO[province]?.cantons || ['Todos'] : ['Todos'];
@@ -168,6 +170,38 @@ export default function ProspectosPage() {
             });
             if (res.ok) setAdded(prev => new Set(prev).add(prospect.place_id));
         } catch { /* silent */ }
+    }
+
+    async function handleLlamar(prospect: HuntResult) {
+        if (!prospect.phone) return alert('Este prospecto no tiene número de teléfono registrado en Google Maps.');
+        setCalling(prospect.place_id);
+        setCallResult(prev => ({ ...prev, [prospect.place_id]: 'calling' }));
+        try {
+            const res = await fetch('/api/calls/outbound', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone: prospect.phone,
+                    prospectName: prospect.name,
+                    businessName: prospect.name,
+                    address: prospect.address,
+                    rating: prospect.rating,
+                    reviews: prospect.user_ratings_total,
+                    proposalUrl: '',
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCallResult(prev => ({ ...prev, [prospect.place_id]: 'done' }));
+            } else {
+                setCallResult(prev => ({ ...prev, [prospect.place_id]: 'error' }));
+                alert(`Error: ${data.error}`);
+            }
+        } catch {
+            setCallResult(prev => ({ ...prev, [prospect.place_id]: 'error' }));
+        } finally {
+            setCalling(null);
+        }
     }
 
     async function handleGenerarPropuesta(prospect: HuntResult) {
@@ -333,15 +367,40 @@ export default function ProspectosPage() {
                                     </div>
                                     <p style={{ margin: 0, fontSize: '0.7rem', color: '#444' }}>{score.reason}</p>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: 'auto' }}>
-                                        {/* Primary CTA */}
-                                        <button
-                                            onClick={() => handleGenerarPropuesta(r)}
-                                            disabled={proposing === r.place_id}
-                                            style={{ width: '100%', background: proposing === r.place_id ? '#1E1E2E' : 'linear-gradient(135deg, #0066FF, #00E5FF)', border: 'none', borderRadius: 8, padding: '0.55rem', color: '#fff', fontSize: '0.8rem', fontWeight: 700, cursor: proposing === r.place_id ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                                        >
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                                            {proposing === r.place_id ? 'Abriendo...' : 'Generar Propuesta'}
-                                        </button>
+                                        {/* Primary CTAs row */}
+                                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                            <button
+                                                onClick={() => handleGenerarPropuesta(r)}
+                                                disabled={proposing === r.place_id}
+                                                style={{ flex: 1, background: proposing === r.place_id ? '#1E1E2E' : 'linear-gradient(135deg, #0066FF, #00E5FF)', border: 'none', borderRadius: 8, padding: '0.55rem', color: '#fff', fontSize: '0.75rem', fontWeight: 700, cursor: proposing === r.place_id ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                                            >
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                                {proposing === r.place_id ? 'Abriendo...' : 'Propuesta'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleLlamar(r)}
+                                                disabled={calling === r.place_id || !r.phone}
+                                                title={!r.phone ? 'Sin número de teléfono' : 'Llamar con IA'}
+                                                style={{
+                                                    flex: 1,
+                                                    background: callResult[r.place_id] === 'done' ? '#1a2a1a'
+                                                        : callResult[r.place_id] === 'error' ? '#2a1a1a'
+                                                        : calling === r.place_id ? '#1E1E2E'
+                                                        : r.phone ? 'linear-gradient(135deg, #00C853, #00897B)' : '#1E1E2E',
+                                                    border: 'none', borderRadius: 8, padding: '0.55rem',
+                                                    color: !r.phone ? '#444' : '#fff',
+                                                    fontSize: '0.75rem', fontWeight: 700,
+                                                    cursor: calling === r.place_id || !r.phone ? 'not-allowed' : 'pointer',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
+                                                }}
+                                            >
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11.7 19.79 19.79 0 0 1 1.61 3.11 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l1.02-.93a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                                {callResult[r.place_id] === 'done' ? '✓ Llamado'
+                                                    : callResult[r.place_id] === 'error' ? '✗ Error'
+                                                    : calling === r.place_id ? 'Llamando...'
+                                                    : 'Llamar IA'}
+                                            </button>
+                                        </div>
                                         {/* Secondary row */}
                                         <div style={{ display: 'flex', gap: '0.4rem' }}>
                                             <button onClick={() => handleAddToCRM(r)} disabled={isAdded}
