@@ -118,6 +118,45 @@ export async function regenerateAdImage(id: number, mode: 'single' | 'batch' = '
     }
 }
 
+export async function publishToInstagram(id: number) {
+    try {
+        const ad = await AdsService.getAdById(id);
+        if (!ad) return { success: false, error: 'Anuncio no encontrado' };
+
+        const { InstagramService } = await import('@/server/services/instagram.service');
+
+        if (!InstagramService.isConfigured()) {
+            return {
+                success: false,
+                setupRequired: true,
+                error: 'Instagram no configurado. Agrega INSTAGRAM_BUSINESS_ID e INSTAGRAM_PAGE_TOKEN en Vercel.',
+            };
+        }
+
+        const imageUrl = (() => {
+            if (!ad.mediaUrl) return '';
+            if (ad.mediaUrl.startsWith('[')) {
+                try { return JSON.parse(ad.mediaUrl)[0] || ''; } catch { return ad.mediaUrl; }
+            }
+            return ad.mediaUrl;
+        })();
+
+        const caption = InstagramService.buildCaption(ad.headline || ad.scratch, ad.copy || ad.scratch);
+
+        const result = await InstagramService.publishPhoto(imageUrl, caption);
+
+        if (result.success) {
+            await AdsService.updateAd(id, { status: 'published', publishAt: new Date() });
+            revalidatePath('/admin/ads');
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Error publishing to Instagram:', error);
+        return { success: false, error: error instanceof Error ? error.message : 'Error al publicar' };
+    }
+}
+
 export async function saveAdEdit(id: number, headline: string, copy: string) {
     try {
         await AdsService.updateAd(id, { headline, copy });

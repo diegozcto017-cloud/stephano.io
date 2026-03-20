@@ -36,6 +36,7 @@
     "remotion": "^4.0.434",
     "resend": "^6.9.3",
     "twilio": "^5.13.0",
+    "vibe-prospecting": "github:explorium-ai/vibeprospecting-mcp",
     "zod": "^4.3.6"
   },
   "devDependencies": {
