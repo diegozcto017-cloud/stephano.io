@@ -1,8 +1,30 @@
 import prisma from '@/lib/prisma';
 import type { LeadInput } from '@/server/validators/lead.validator';
+import { scoreLead } from './deal-intelligence.service';
 
 export class LeadService {
     static async create(data: LeadInput) {
+        // ── AUTOMATIC SCORING ──
+        let leadScore = null;
+        let leadCategory = null;
+        let scoreFactors = null;
+
+        try {
+            const result = await scoreLead({
+                nombre: data.nombre,
+                empresa: data.empresa || undefined,
+                tipo_proyecto: data.tipo_proyecto,
+                presupuesto_rango: data.presupuesto_rango || undefined,
+                urgencia: data.urgencia || undefined,
+                mensaje: data.mensaje || undefined,
+            });
+            leadScore = result.score;
+            leadCategory = result.category;
+            scoreFactors = JSON.stringify(result.factors);
+        } catch (err) {
+            console.error('[LeadService] Automatic scoring failed:', err);
+        }
+
         const lead = await prisma.lead.create({
             data: {
                 nombre: data.nombre,
@@ -14,6 +36,9 @@ export class LeadService {
                 presupuesto_rango: data.presupuesto_rango || null,
                 urgencia: data.urgencia || null,
                 mensaje: data.mensaje || null,
+                leadScore,
+                leadCategory,
+                scoreFactors,
             },
         });
 

@@ -58,7 +58,19 @@ export default function SolucionesPage() {
 
                 <motion.div style={{ textAlign: 'center', marginTop: 'var(--space-3xl)' }}
                     initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-lg)', fontSize: 'var(--font-lg)' }}>
+                    <div style={{ background: 'rgba(0,102,255,0.06)', border: '1px solid rgba(0,102,255,0.18)', borderRadius: 16, padding: '24px 32px', marginBottom: 'var(--space-xl)', maxWidth: 640, margin: '0 auto var(--space-xl)' }}>
+                        <div style={{ fontSize: 28, marginBottom: 10 }}>🎯</div>
+                        <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 'var(--font-lg)', marginBottom: 8 }}>
+                            ¿Querés ver cómo se vería tu negocio?
+                        </p>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-sm)', lineHeight: 1.6, marginBottom: 16 }}>
+                            En tu cotización podés solicitar una demostración interactiva personalizada — verás exactamente cómo se vería la página de tu negocio antes de tomar cualquier decisión.
+                        </p>
+                        <Link href="/cotizar" className={glass.btnPrimary} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                            Solicitar demo en mi cotización →
+                        </Link>
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-lg)', fontSize: 'var(--font-base)' }}>
                         Si tu industria no aparece aquí, Stephano puede diseñar una solución personalizada.
                     </p>
                     <Link href="/contacto" className={glass.btnPrimary}>Contactar</Link>

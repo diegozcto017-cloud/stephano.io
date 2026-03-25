@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getAdminApiKey } from '@/server/actions/auth.action';
 import type { HuntResult } from '@/app/api/leads/hunt/route';
 
 /* ── Costa Rica Geographic Data ── */
@@ -54,31 +55,24 @@ const CANTON_COORDS: Record<string, { lat: number; lng: number }> = {
 const INDUSTRY_PRESETS = [
     { label: 'Restaurantes', icon: '🍽️', query: 'restaurantes' },
     { label: 'Pizzerías', icon: '🍕', query: 'pizzerías pizza' },
-    { label: 'Rest. Italiano', icon: '🇮🇹', query: 'restaurante italiano pasta' },
-    { label: 'Catering', icon: '🎂', query: 'servicio de catering eventos banquetes' },
-    { label: 'Hoteles', icon: '🏨', query: 'hoteles hostales alojamiento' },
-    { label: 'Salones Belleza', icon: '💅', query: 'salones de belleza peluquerías' },
+    { label: 'Cafeterías', icon: '☕', query: 'cafetería coffee shop café' },
+    { label: 'Pastelerías', icon: '🍰', query: 'pastelería repostería cakes panadería' },
+    { label: 'Salones Belleza', icon: '💅', query: 'salones de belleza peluquerías estilistas' },
+    { label: 'Uñas / Mani', icon: '✨', query: 'salón uñas nails manicure pedicure' },
     { label: 'Barberías', icon: '✂️', query: 'barberías barbero' },
+    { label: 'Serigrafía', icon: '👕', query: 'serigrafía bordado uniformes sublimación' },
+    { label: 'Macrobiótica', icon: '🌿', query: 'macrobiótica productos naturales suplementos' },
     { label: 'Clínicas Dentales', icon: '🦷', query: 'clínicas dentales odontólogos dentistas' },
     { label: 'Médicos', icon: '🩺', query: 'consultorios médicos clínicas médicas' },
     { label: 'Veterinarias', icon: '🐾', query: 'clínicas veterinarias veterinario mascotas' },
-    { label: 'Hosp. Veterinario', icon: '🏥', query: 'hospital veterinario animales' },
-    { label: 'Tienda Mascotas', icon: '🐕', query: 'tienda productos mascotas animales' },
-    { label: 'Paseador Perros', icon: '🦮', query: 'paseador de perros servicio mascotas' },
+    { label: 'Tienda Ropa', icon: '👗', query: 'tienda de ropa boutique moda fashion' },
     { label: 'Talleres Autos', icon: '🚗', query: 'talleres mecánicos automóviles reparación' },
     { label: 'Talleres Motos', icon: '🏍️', query: 'talleres mecánicos motocicletas reparación' },
-    { label: 'Baterías', icon: '🔋', query: 'tienda baterías vehículos' },
-    { label: 'Perfumerías', icon: '🌸', query: 'perfumerías cosméticos tienda belleza' },
-    { label: 'Gimnasios', icon: '💪', query: 'gimnasios fitness centros deportivos' },
-    { label: 'Cancha Fútbol 5', icon: '⚽', query: 'canchas fútbol 5 sintético alquiler' },
-    { label: 'Cancha Tenis', icon: '🎾', query: 'canchas tenis club deportivo' },
-    { label: 'Cibercafés', icon: '💻', query: 'cibercafé internet café computadoras' },
+    { label: 'Gimnasios', icon: '💪', query: 'gimnasios fitness crossfit entrenamiento' },
     { label: 'Ferreterías', icon: '🔧', query: 'ferreterías materiales construcción' },
     { label: 'Abogados', icon: '⚖️', query: 'despachos de abogados bufetes jurídicos' },
-    { label: 'Contadores', icon: '📊', query: 'contadores públicos auditorías contabilidad' },
-    { label: 'Oficinas Empresa', icon: '🏢', query: 'oficinas empresas servicios empresariales' },
-    { label: 'Farmacias', icon: '💊', query: 'farmacias boticas' },
-    { label: 'Pulperías', icon: '🛒', query: 'pulperías minisupers tiendas' },
+    { label: 'Inmobiliarias', icon: '🏠', query: 'bienes raíces inmobiliaria real estate' },
+    { label: 'Esc. Manejo', icon: '🚗', query: 'escuela de manejo conducción licencias' },
 ];
 
 function getScore(r: HuntResult): { label: string; color: string; reason: string } {
@@ -90,21 +84,13 @@ function getScore(r: HuntResult): { label: string; color: string; reason: string
     return { label: 'COLD', color: '#0066FF', reason: 'Sin web detectada' };
 }
 
-const RADIUS_OPTIONS = [
-    { label: '5 km', value: 5000 },
-    { label: '10 km', value: 10000 },
-    { label: '20 km', value: 20000 },
-    { label: '40 km', value: 40000 },
-    { label: '60 km', value: 60000 },
-    { label: '100 km', value: 100000 },
-];
+
 
 export default function ProspectosPage() {
     const router = useRouter();
     const [query, setQuery] = useState('');
     const [province, setProvince] = useState('');
     const [canton, setCanton] = useState('Todos');
-    const [radius, setRadius] = useState(40000);
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<HuntResult[]>([]);
     const [stats, setStats] = useState<{ total: number; noWebsite: number } | null>(null);
@@ -124,11 +110,8 @@ export default function ProspectosPage() {
 
     function getCoords(): { lat?: number; lng?: number; location: string } {
         if (!province) return { location: 'Costa Rica' };
-        const cantonKey = canton !== 'Todos' ? canton : null;
-        const coords = cantonKey && CANTON_COORDS[cantonKey]
-            ? CANTON_COORDS[cantonKey]
-            : CR_GEO[province];
-        return { lat: coords.lat, lng: coords.lng, location: canton !== 'Todos' ? `${canton}, ${province}` : province };
+        // We omit coordinates to let Google Places API search the entire territory by name
+        return { location: canton !== 'Todos' ? `${canton}, ${province}, Costa Rica` : `${province}, Costa Rica` };
     }
 
     async function handleHunt(customQuery?: string) {
@@ -142,12 +125,13 @@ export default function ProspectosPage() {
         abortRef.current = new AbortController();
 
         const { lat, lng, location } = getCoords();
+        const apiKey = await getAdminApiKey();
 
         try {
             const res = await fetch('/api/leads/hunt', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
-                body: JSON.stringify({ query: q, location, lat, lng, radius, noWebsiteOnly: true }),
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': apiKey || '' },
+                body: JSON.stringify({ query: q, location, noWebsiteOnly: true }),
                 signal: abortRef.current.signal,
             });
             const data = await res.json();
@@ -163,9 +147,10 @@ export default function ProspectosPage() {
 
     async function handleAddToCRM(prospect: HuntResult) {
         try {
+            const apiKey = await getAdminApiKey();
             const res = await fetch('/api/leads', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': apiKey || '' },
                 body: JSON.stringify({
                     nombre: prospect.name, email: `pendiente@${prospect.name.toLowerCase().replace(/\s+/g, '')}.com`,
                     telefono: prospect.phone || '', tipo_proyecto: 'Landing Page',
@@ -182,9 +167,10 @@ export default function ProspectosPage() {
         setCalling(prospect.place_id);
         setCallResult(prev => ({ ...prev, [prospect.place_id]: 'calling' }));
         try {
+            const apiKey = await getAdminApiKey();
             const res = await fetch('/api/calls/outbound', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': apiKey || '' },
                 body: JSON.stringify({
                     phone: prospect.phone,
                     prospectName: prospect.name,
@@ -220,9 +206,10 @@ export default function ProspectosPage() {
         }
         setPitching(prospect.place_id);
         try {
+            const apiKey = await getAdminApiKey();
             const res = await fetch('/api/leads/pitch', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': apiKey || '' },
                 body: JSON.stringify({
                     businessName: prospect.name,
                     address: prospect.address,
@@ -245,9 +232,10 @@ export default function ProspectosPage() {
         if (enrichData[prospect.place_id]) return;
         setEnriching(prospect.place_id);
         try {
+            const apiKey = await getAdminApiKey();
             const res = await fetch('/api/leads/enrich', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': apiKey || '' },
                 body: JSON.stringify({
                     businessName: prospect.name,
                     address: prospect.address,
@@ -265,18 +253,20 @@ export default function ProspectosPage() {
         setProposing(prospect.place_id);
         // Add to CRM simultaneously (fire and forget)
         if (!added.has(prospect.place_id)) {
-            fetch('/api/leads', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
-                body: JSON.stringify({
-                    nombre: prospect.name,
-                    email: `pendiente@${prospect.name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}.com`,
-                    telefono: prospect.phone || '',
-                    tipo_proyecto: 'Landing Page',
-                    mensaje: `Prospecto Google Maps. Dirección: ${prospect.address}. Rating: ${prospect.rating || 'N/A'} (${prospect.user_ratings_total || 0} reseñas). Sin sitio web.`,
-                    estado: 'nuevo',
-                }),
-            }).then(r => { if (r.ok) setAdded(prev => new Set(prev).add(prospect.place_id)); }).catch(() => {});
+            getAdminApiKey().then(apiKey => {
+                fetch('/api/leads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-key': apiKey || '' },
+                    body: JSON.stringify({
+                        nombre: prospect.name,
+                        email: `pendiente@${prospect.name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}.com`,
+                        telefono: prospect.phone || '',
+                        tipo_proyecto: 'Landing Page',
+                        mensaje: `Prospecto Google Maps. Dirección: ${prospect.address}. Rating: ${prospect.rating || 'N/A'} (${prospect.user_ratings_total || 0} reseñas). Sin sitio web.`,
+                        estado: 'nuevo',
+                    }),
+                }).then(r => { if (r.ok) setAdded(prev => new Set(prev).add(prospect.place_id)); }).catch(() => {});
+            });
         }
         // Navigate to proposals page with pre-filled data
         const params = new URLSearchParams({
@@ -314,7 +304,7 @@ export default function ProspectosPage() {
                         { label: 'Encontrados', value: stats.total, color: '#0066FF' },
                         { label: 'Sin Sitio Web', value: stats.noWebsite, color: '#FF4444' },
                         { label: 'Agregados al CRM', value: added.size, color: '#00E5FF' },
-                        { label: 'Valor Potencial', value: `$${(stats.noWebsite * 350).toLocaleString()}`, color: '#9D4EDD' },
+                        { label: 'Valor Potencial', value: `$${(stats.noWebsite * 300).toLocaleString()}`, color: '#9D4EDD' },
                     ].map(s => (
                         <div key={s.label} style={{ flex: '1 1 140px', background: '#111118', border: '1px solid #1E1E2E', borderRadius: 12, padding: '0.875rem 1.1rem' }}>
                             <div style={{ fontSize: '1.4rem', fontWeight: 800, color: s.color }}>{s.value}</div>
@@ -346,10 +336,6 @@ export default function ProspectosPage() {
                         placeholder="Ej: restaurantes, clínicas dentales, barberías..."
                         style={{ flex: '1 1 240px', background: '#0A0A0F', border: '1px solid #2A2A3E', borderRadius: 10, padding: '0.65rem 1rem', color: '#fff', fontSize: '0.875rem', outline: 'none' }}
                     />
-                    <select value={radius} onChange={e => setRadius(Number(e.target.value))}
-                        style={{ ...selectStyle, flex: '0 0 110px' }}>
-                        {RADIUS_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                    </select>
                     <button
                         onClick={() => handleHunt()}
                         disabled={loading || !query.trim()}

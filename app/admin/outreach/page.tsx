@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getAdminApiKey } from '@/server/actions/auth.action';
 
 /* ─── Industrias con oferta específica ─── */
 const INDUSTRIES = [
@@ -145,10 +146,11 @@ export default function OutreachPage() {
         setResult(null);
         setCopied(null);
         try {
+            const apiKey = await getAdminApiKey();
             const cleanHandle = handle.trim() ? parseHandle(handle.trim()) : '';
             const res = await fetch('/api/leads/dm-pitch', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-admin-key': 'stephano-secret-2026' },
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': apiKey || '' },
                 body: JSON.stringify({
                     handle: cleanHandle,
                     businessName: businessName.trim() || cleanHandle.replace('@', ''),

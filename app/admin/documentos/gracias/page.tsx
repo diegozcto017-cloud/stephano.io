@@ -4,36 +4,50 @@ import { useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from '@/styles/admin.module.css';
+import DocumentPage from '@/components/AdminDocument/DocumentPage';
 
 function GraciasContent() {
     const searchParams = useSearchParams();
-    const previewRef = useRef<HTMLDivElement>(null);
+    const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [generating, setGenerating] = useState(false);
 
     const clientId = searchParams.get('clientId');
 
     const [form, setForm] = useState({
         clientName: searchParams.get('nombre') || '',
-        celebration: '¡Estamos en vivo! Ha sido un viaje increíble transformar tu visión en una realidad digital de alto rendimiento.',
-        assetsLink: 'https://drive.google.com/stephano/assets/final-pack-2026',
-        supportPlan: 'Cuentas con 30 días de soporte prioritario gratuito y monitorización 24/7 de estabilidad.',
-        finalNote: 'Gracias por confiar en Stephano. Tu éxito es nuestra mejor referencia. Nos vemos en la próxima fase de escalabilidad.'
+        message: '¡Estamos en vivo! Ha sido un viaje increíble transformar tu visión en una realidad digital de alto rendimiento. Gracias por confiar en Stephano. Tu éxito es nuestra mejor referencia. Nos vemos en la próxima fase de escalabilidad.',
+        date: new Date().toLocaleDateString('es', { year: 'numeric', month: 'long', day: 'numeric' })
     });
 
     const update = (field: string, value: string) => setForm({ ...form, [field]: value });
 
     const downloadPDF = async () => {
-        if (!previewRef.current) return;
         setGenerating(true);
         try {
             const html2canvas = (await import('html2canvas')).default;
             const { jsPDF } = await import('jspdf');
-            const canvas = await html2canvas(previewRef.current, { scale: 2, backgroundColor: '#000000' });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            const pdf = new jsPDF('p', 'mm', 'letter');
+            
+            const page = pageRefs.current[0];
+            if (!page) throw new Error('Page reference not found for PDF generation.');
+            
+            const canvas = await html2canvas(page, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#000000',
+                logging: false,
+                onclone: (clonedDoc) => {
+                    const element = clonedDoc.getElementById('pdf-page-0');
+                    if (element) {
+                        element.style.margin = '0';
+                        element.style.boxShadow = 'none';
+                    }
+                }
+            });
+            const imgData = canvas.toDataURL('image/png', 1.0);
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, 215.9, 279.4, undefined, 'FAST');
+            
             pdf.save(`Gracias_${form.clientName.replace(/\s+/g, '_')}.pdf`);
         } catch (err) {
             console.error('PDF generation failed:', err);
@@ -62,20 +76,12 @@ function GraciasContent() {
                             <input className={styles.adminInput} value={form.clientName} onChange={(e) => update('clientName', e.target.value)} />
                         </div>
                         <div>
-                            <label className={styles.detailLabel}>Mensaje de Celebración</label>
-                            <textarea className={styles.adminTextarea} value={form.celebration} onChange={(e) => update('celebration', e.target.value)} rows={3} />
+                            <label className={styles.detailLabel}>Mensaje de Agradecimiento</label>
+                            <textarea className={styles.adminTextarea} value={form.message} onChange={(e) => update('message', e.target.value)} rows={6} />
                         </div>
                         <div>
-                            <label className={styles.detailLabel}>Link de Entrega Final</label>
-                            <input className={styles.adminInput} value={form.assetsLink} onChange={(e) => update('assetsLink', e.target.value)} />
-                        </div>
-                        <div>
-                            <label className={styles.detailLabel}>Plan de Soporte Post-Lanzamiento</label>
-                            <textarea className={styles.adminTextarea} value={form.supportPlan} onChange={(e) => update('supportPlan', e.target.value)} rows={2} />
-                        </div>
-                        <div>
-                            <label className={styles.detailLabel}>Nota Final de Gratitud</label>
-                            <textarea className={styles.adminTextarea} value={form.finalNote} onChange={(e) => update('finalNote', e.target.value)} rows={3} />
+                            <label className={styles.detailLabel}>Fecha de Entrega</label>
+                            <input className={styles.adminInput} value={form.date} onChange={(e) => update('date', e.target.value)} />
                         </div>
                         <button onClick={downloadPDF} className={styles.btnPrimary} style={{ width: '100%', justifyContent: 'center', marginTop: '12px' }} disabled={generating}>
                             {generating ? 'Generando PDF...' : 'Generar PDF Final'}
@@ -83,48 +89,37 @@ function GraciasContent() {
                     </div>
                 </div>
 
-                <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
-                        Documento de Despedida
-                    </div>
-                    <div ref={previewRef} style={{ background: '#000000', color: '#ffffff', width: '100%', minHeight: '842px', padding: '100px 70px', fontFamily: 'Inter, sans-serif', position: 'relative' }}>
-
-                        <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-                            <div style={{ fontSize: '14px', opacity: 0.3, letterSpacing: '0.4em', marginBottom: '20px' }}>PROJECT COMPLETE</div>
-                            <h1 style={{ fontSize: '64px', fontWeight: 900, letterSpacing: '-0.05em', margin: 0, lineHeight: 0.9 }}>THANK YOU</h1>
-                            <div style={{ marginTop: '20px', height: '2px', width: '40px', background: '#0066FF', margin: '20px auto' }}></div>
-                        </div>
-
-                        <div style={{ marginBottom: '60px' }}>
-                            <p style={{ fontSize: '20px', lineHeight: 1.6, color: '#fff', fontWeight: 300, textAlign: 'center' }}>
-                                Estimado <strong>{form.clientName || 'Cliente'}</strong>,
-                            </p>
-                            <p style={{ fontSize: '16px', lineHeight: 1.8, color: 'rgba(255,255,255,0.7)', textAlign: 'center', maxWidth: '600px', margin: '20px auto' }}>
-                                {form.celebration}
-                            </p>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '60px' }}>
-                            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '25px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <h4 style={{ fontSize: '11px', opacity: 0.3, letterSpacing: '0.1em', marginBottom: '10px' }}>ENTREGA FINAL</h4>
-                                <div style={{ fontSize: '12px', color: '#00E5FF', wordBreak: 'break-all' }}>{form.assetsLink}</div>
+                                {/* Live Preview - Page Based (NO NESTED SCROLL) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', background: 'rgba(0,0,0,0.1)', padding: '20px', borderRadius: '12px' }}>
+                    
+                    {/* PAGE 1: Thanks */}
+                    <div ref={(el) => { pageRefs.current[0] = el; }} id="pdf-page-0">
+                        <DocumentPage pageNumber={1} total={1}>
+                            <div style={{ marginTop: '60px', textAlign: 'center' }}>
+                                <div style={{ fontSize: '14px', opacity: 0.3, letterSpacing: '0.5em', marginBottom: '20px' }}>THANK YOU</div>
+                                <h1 style={{ fontSize: '64px', fontWeight: 900, letterSpacing: '-0.05em', margin: 0, lineHeight: 1, color: '#ffffff' }}>GRACIAS POR<br /><span>CONFIAR</span></h1>
+                                <div style={{ marginTop: '30px', height: '1px', width: '80px', background: '#FFFFFF', margin: '0 auto' }}></div>
                             </div>
-                            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '25px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <h4 style={{ fontSize: '11px', opacity: 0.3, letterSpacing: '0.1em', marginBottom: '10px' }}>SOPORTE</h4>
-                                <div style={{ fontSize: '12px', color: '#fff' }}>{form.supportPlan}</div>
-                            </div>
-                        </div>
 
-                        <div style={{ textAlign: 'center', marginTop: '40px' }}>
-                            <div style={{ fontSize: '18px', fontStyle: 'italic', fontWeight: 300, color: 'rgba(255,255,255,0.9)' }}>
-                                &quot;{form.finalNote}&quot;
+                            <div style={{ marginTop: '80px', textAlign: 'center' }}>
+                                <p style={{ fontSize: '24px', fontWeight: 300, color: '#fff', marginBottom: '40px' }}>Estimado(a) <strong>{form.clientName || 'Cliente'}</strong>,</p>
+                                <div style={{ fontSize: '18px', lineHeight: 2, color: 'rgba(255,255,255,0.7)', maxWidth: '600px', margin: '0 auto', whiteSpace: 'pre-wrap' }}>
+                                    {form.message}
+                                </div>
                             </div>
-                        </div>
 
-                        <div style={{ position: 'absolute', bottom: '60px', left: '0', right: '0', textAlign: 'center' }}>
-                            <div style={{ fontSize: '24px', fontWeight: 900, background: 'linear-gradient(135deg, #0066FF, #00E5FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '5px' }}>Stephano.io</div>
-                            <div style={{ fontSize: '10px', opacity: 0.2 }}>DIGITAL ENGINEERING EXCELLENCE · {new Date().getFullYear()}</div>
-                        </div>
+                            <div style={{ marginTop: '80px', textAlign: 'center' }}>
+                                <div style={{ display: 'inline-block', padding: '30px 50px', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div style={{ fontSize: '12px', opacity: 0.4, marginBottom: '10px' }}>FECHA DE CIERRE</div>
+                                    <div style={{ fontSize: '16px', fontWeight: 700 }}>{form.date}</div>
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: 'auto', textAlign: 'center', paddingBottom: '40px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: 900, color: '#ffffff', marginBottom: '10px' }}>Stephano.io</div>
+                                <div style={{ fontSize: '12px', opacity: 0.3 }}>Innovación y Excelencia Digital</div>
+                            </div>
+                        </DocumentPage>
                     </div>
                 </div>
             </div>

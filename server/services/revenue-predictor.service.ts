@@ -25,7 +25,7 @@ export interface PipelineStats {
 // CONSTANTS
 // ─────────────────────────────────────────
 
-const TARGET_REVENUE = 80000;
+const TARGET_REVENUE = 40000;
 
 // Close probability by pipeline stage
 const STAGE_PROBABILITY: Record<string, number> = {
@@ -53,7 +53,7 @@ const STAGE_PROBABILITY: Record<string, number> = {
  *   "$25,000+"      → 30000
  */
 export function parsePresupuesto(rango?: string | null): number {
-    if (!rango) return 500; // Default estimate
+    if (!rango) return 300; // Default estimate
 
     const clean = rango.replace(/\s/g, '').toLowerCase();
 
@@ -81,7 +81,7 @@ export function parsePresupuesto(rango?: string | null): number {
         return parseInt(singleMatch[1].replace(/,/g, ''));
     }
 
-    return 500;
+    return 300;
 }
 
 // ─────────────────────────────────────────

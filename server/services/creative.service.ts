@@ -239,7 +239,7 @@ Quality: 9:16 ratio, story-optimized, vibrant but minimal, 8K.`,
     },
 ];
 
-async function callGeminiImage(prompt: string, geminiKey: string): Promise<string | null> {
+export async function callGeminiImage(prompt: string, geminiKey: string): Promise<string | null> {
     try {
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${geminiKey}`,

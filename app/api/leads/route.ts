@@ -107,13 +107,14 @@ export async function GET(request: NextRequest) {
 
         if (chartRequested) {
             const PRICE_MAP: Record<string, number> = {
-                'Landing Page': 350, 'landing_page': 350, 'desarrollo_web': 350,
-                'E-commerce': 1200, 'ecommerce': 1200,
-                'CRM / Web App': 1500, 'Web App': 1500, 'CRM': 1500, 'sistema_personalizado': 1500,
-                'Corporativa': 450, 'Portfolio': 450,
-                'Automatización': 500, 'automatizacion': 500,
-                'Rediseño': 450, 'rediseno': 450,
-                'App Móvil': 1500,
+                'Landing Page': 300, 'landing_page': 300, 'landing_p': 300,
+                'E-commerce': 1500, 'ecommerce': 1500,
+                'CRM / Web App': 5000, 'Web App': 5000, 'CRM': 1000, 'sistema_personalizado': 5000,
+                'Corporativa': 800, 'Portfolio': 400,
+                'Automatización': 2000, 'automatizacion': 2000,
+                'Rediseño': 1000, 'rediseno': 1000,
+                'App Móvil': 8000,
+                'ai_int': 5000, 'consulting': 1000,
             };
             const allLeads = await LeadService.getAll();
             const now = new Date();

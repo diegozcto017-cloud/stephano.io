@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import styles from '@/styles/admin.module.css';
 
+import { getAdminApiKey } from '@/server/actions/auth.action';
+
 // ─────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────
@@ -23,7 +25,7 @@ interface PipelineStats {
 // CONSTANTS
 // ─────────────────────────────────────────
 
-const TARGET = 80000;
+const TARGET = 40000;
 
 const STAGE_META: Record<string, { label: string; prob: number; color: string }> = {
     nuevo_lead:         { label: 'Nuevo Lead',        prob: 5,   color: '#888' },
@@ -56,14 +58,22 @@ export default function RevenuePredictorPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch('/api/revenue-predictor')
-            .then((r) => r.json())
-            .then((data) => {
+        const fetchStats = async () => {
+            try {
+                const apiKey = await getAdminApiKey();
+                const res = await fetch('/api/revenue-predictor', {
+                    headers: { 'x-admin-key': apiKey || '' }
+                });
+                const data = await res.json();
                 if (data.error) throw new Error(data.error);
                 setStats(data);
-            })
-            .catch((err) => setError(err.message))
-            .finally(() => setLoading(false));
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
     }, []);
 
     const closedPct = stats ? Math.min(100, (stats.totalClosedRevenue / TARGET) * 100) : 0;

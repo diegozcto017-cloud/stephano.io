@@ -4,6 +4,7 @@ import { useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from '@/styles/admin.module.css';
+import DocumentPage from '@/components/AdminDocument/DocumentPage';
 
 interface InvoiceItem {
     description: string;
@@ -13,7 +14,7 @@ interface InvoiceItem {
 
 function FacturaContent() {
     const searchParams = useSearchParams();
-    const previewRef = useRef<HTMLDivElement>(null);
+    const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [generating, setGenerating] = useState(false);
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -27,6 +28,7 @@ function FacturaContent() {
         invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
         dueDate: '',
         notes: '',
+        date: new Date().toLocaleDateString('es', { year: 'numeric', month: 'long', day: 'numeric' })
     });
     const [items, setItems] = useState<InvoiceItem[]>([
         { description: 'Consultoría Digital / Implementación', quantity: 1, unitPrice: 0 },
@@ -77,27 +79,44 @@ function FacturaContent() {
             setSaving(false);
         }
     };
-
     const downloadPDF = async () => {
-        if (!previewRef.current) return;
         setGenerating(true);
         try {
             const html2canvas = (await import('html2canvas')).default;
             const { jsPDF } = await import('jspdf');
-            const canvas = await html2canvas(previewRef.current, { scale: 2, backgroundColor: '#000000' });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`Factura_${form.invoiceNumber}.pdf`);
+            const pdf = new jsPDF('p', 'mm', 'letter');
+            
+            for (let i = 0; i < pageRefs.current.length; i++) {
+                const page = pageRefs.current[i];
+                if (!page) continue;
+                
+                const canvas = await html2canvas(page, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#000000',
+                    logging: false,
+                    onclone: (clonedDoc) => {
+                        const element = clonedDoc.getElementById('pdf-page-' + i);
+                        if (element) {
+                            element.style.margin = '0';
+                            element.style.boxShadow = 'none';
+                        }
+                    }
+                });
+                
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                if (i > 0) pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, 0, 215.9, 279.4, undefined, 'FAST');
+            }
+            
+            pdf.save(`Factura_${form.invoiceNumber.replace(/\s+/g, '_')}.pdf`);
         } catch (err) {
             console.error('PDF generation failed:', err);
         }
         setGenerating(false);
     };
 
-    const today = new Date().toLocaleDateString('es', { year: 'numeric', month: 'long', day: 'numeric' });
+
     const fmt = (n: number) => n.toLocaleString('es', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     return (
@@ -124,6 +143,14 @@ function FacturaContent() {
                         <div>
                             <label className={styles.detailLabel}>Vencimiento</label>
                             <input className={styles.adminInput} type="date" value={form.dueDate} onChange={(e) => update('dueDate', e.target.value)} />
+                        </div>
+                        <div>
+                            <label className={styles.detailLabel}>Fecha Emisión</label>
+                            <input className={styles.adminInput} value={form.date} onChange={(e) => update('date', e.target.value)} />
+                        </div>
+                        <div>
+                            <label className={styles.detailLabel}>Notas Adicionales</label>
+                            <textarea className={styles.adminTextarea} value={form.notes} onChange={(e) => update('notes', e.target.value)} rows={2} />
                         </div>
 
                         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '16px', marginTop: '10px' }}>
@@ -156,81 +183,77 @@ function FacturaContent() {
                     </div>
                 </div>
 
-                {/* Live Preview (Dark Mode) */}
-                <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
-                        Vista Previa Factura Premium
-                    </div>
-                    <div ref={previewRef} style={{ background: '#000000', color: '#ffffff', width: '100%', minHeight: '842px', padding: '60px', fontFamily: 'Inter, sans-serif' }}>
+                {/* Live Preview - Page Based (NO NESTED SCROLL) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', background: 'rgba(0,0,0,0.1)', padding: '20px', borderRadius: '12px' }}>
+                    
+                    {/* PAGE 1: Invoice */}
+                    <div ref={(el) => { pageRefs.current[0] = el; }} id="pdf-page-0">
+                        <DocumentPage pageNumber={1} total={1}>
+                            <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <h1 style={{ fontSize: '48px', fontWeight: 900, letterSpacing: '-0.04em', margin: 0 }}>FACTURA</h1>
+                                    <div style={{ fontSize: '13px', opacity: 0.4, marginTop: '5px' }}>#{form.invoiceNumber}</div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ fontSize: '11px', opacity: 0.4, marginBottom: '5px' }}>FECHA DE EMISIÓN</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 700 }}>{form.date}</div>
+                                </div>
+                            </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '60px' }}>
-                            <div>
-                                <h1 style={{ fontSize: '32px', fontWeight: 900, margin: 0 }}>INVOICE</h1>
-                                <p style={{ fontSize: '13px', opacity: 0.5, marginTop: '5px' }}>N.º {form.invoiceNumber} · {today}</p>
+                            <div style={{ marginTop: '60px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+                                <div>
+                                    <h4 style={{ fontSize: '10px', opacity: 0.3, letterSpacing: '0.2em', marginBottom: '10px' }}>CLIENTE</h4>
+                                    <div style={{ fontSize: '15px', fontWeight: 700 }}>{form.clientName || 'Cliente'}</div>
+                                    <div style={{ fontSize: '13px', opacity: 0.6, marginTop: '4px' }}>{form.clientCompany}</div>
+                                    <div style={{ fontSize: '13px', opacity: 0.6 }}>{form.clientEmail}</div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <h4 style={{ fontSize: '10px', opacity: 0.3, letterSpacing: '0.2em', marginBottom: '10px' }}>MONTO TOTAL</h4>
+                                    <div style={{ fontSize: '32px', fontWeight: 900, color: '#ffffff' }}>${fmt(total)} USD</div>
+                                </div>
                             </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '24px', fontWeight: 900, background: 'linear-gradient(135deg, #0066FF, #00E5FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Stephano.io</div>
-                                <div style={{ fontSize: '11px', opacity: 0.4 }}>Ingeniería de Software Premium</div>
-                            </div>
-                        </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '60px' }}>
-                            <div style={{ padding: '25px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <h4 style={{ fontSize: '10px', opacity: 0.4, letterSpacing: '0.1em', marginBottom: '10px' }}>FACTURAR A</h4>
-                                <div style={{ fontSize: '15px', fontWeight: 700 }}>{form.clientName || '[Nombre]'}</div>
-                                <div style={{ fontSize: '13px', opacity: 0.6, marginTop: '5px' }}>{form.clientCompany}</div>
-                                <div style={{ fontSize: '13px', opacity: 0.6 }}>{form.clientEmail}</div>
+                            <div style={{ marginTop: '60px' }}>
+                                <h4 style={{ fontSize: '10px', opacity: 0.3, letterSpacing: '0.2em', marginBottom: '20px' }}>DETALLE DE SERVICIOS</h4>
+                                <div style={{ display: 'grid', gap: '1px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', overflow: 'hidden' }}>
+                                    {items.map((item, i) => (
+                                        <div key={i} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', display: 'flex', justifyContent: 'space-between' }}>
+                                            <div>
+                                                <div style={{ fontSize: '14px', fontWeight: 700 }}>{item.description || 'Consultoría Técnica'}</div>
+                                                <div style={{ fontSize: '12px', opacity: 0.4, marginTop: '2px' }}>Cant: {item.quantity} · ${fmt(item.unitPrice)}/u</div>
+                                            </div>
+                                            <div style={{ fontSize: '14px', fontWeight: 700 }}>${fmt(item.quantity * item.unitPrice)}</div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                            <div style={{ padding: '25px' }}>
-                                <h4 style={{ fontSize: '10px', opacity: 0.4, letterSpacing: '0.1em', marginBottom: '10px' }}>PAGO Y VENCIMIENTO</h4>
-                                <div style={{ fontSize: '13px' }}><strong>Vence:</strong> {form.dueDate ? new Date(form.dueDate + 'T12:00:00').toLocaleDateString('es') : 'Pago al Recibir'}</div>
-                                <div style={{ fontSize: '13px', marginTop: '5px' }}><strong>Método:</strong> Transferencia / Crypto / Stripe</div>
-                            </div>
-                        </div>
 
-                        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '40px' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                    <th style={{ textAlign: 'left', padding: '15px 0', fontSize: '11px', opacity: 0.4, fontWeight: 500 }}>DESCRIPCIÓN</th>
-                                    <th style={{ textAlign: 'center', padding: '15px 0', fontSize: '11px', opacity: 0.4, fontWeight: 500 }}>CANT.</th>
-                                    <th style={{ textAlign: 'right', padding: '15px 0', fontSize: '11px', opacity: 0.4, fontWeight: 500 }}>P. UNITARIO</th>
-                                    <th style={{ textAlign: 'right', padding: '15px 0', fontSize: '11px', opacity: 0.4, fontWeight: 500 }}>TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {items.map((item, i) => (
-                                    <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <td style={{ padding: '20px 0', fontSize: '14px' }}>{item.description || 'Consultoría Técnica'}</td>
-                                        <td style={{ textAlign: 'center', padding: '20px 0', fontSize: '14px' }}>{item.quantity}</td>
-                                        <td style={{ textAlign: 'right', padding: '20px 0', fontSize: '14px' }}>${fmt(item.unitPrice)}</td>
-                                        <td style={{ textAlign: 'right', padding: '20px 0', fontSize: '14px', fontWeight: 700 }}>${fmt(item.quantity * item.unitPrice)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                            <div style={{ marginTop: '40px', marginLeft: 'auto', width: '240px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '13px', opacity: 0.5 }}>
+                                    <span>Subtotal</span><span>${fmt(subtotal)}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '13px', opacity: 0.5 }}>
+                                    <span>IVA (12%)</span><span>${fmt(tax)}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '10px' }}>
+                                    <span style={{ fontSize: '14px', fontWeight: 700 }}>TOTAL</span>
+                                    <span style={{ fontSize: '18px', fontWeight: 900, color: '#ffffff' }}>${fmt(total)} USD</span>
+                                </div>
+                            </div>
 
-                        <div style={{ marginLeft: 'auto', width: '280px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', fontSize: '14px', opacity: 0.6 }}>
-                                <span>Subtotal</span><span>${fmt(subtotal)}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', fontSize: '14px', opacity: 0.6 }}>
-                                <span>IVA (12%)</span><span>${fmt(tax)}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px 0', borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '10px' }}>
-                                <span style={{ fontSize: '16px', fontWeight: 900 }}>TOTAL</span>
-                                <span style={{ fontSize: '20px', fontWeight: 900, color: '#00E5FF' }}>${fmt(total)} USD</span>
-                            </div>
-                        </div>
+                            {form.notes && (
+                                <div style={{ marginTop: '40px' }}>
+                                    <h4 style={{ fontSize: '10px', opacity: 0.3, letterSpacing: '0.2em', marginBottom: '10px' }}>NOTAS ADICIONALES</h4>
+                                    <div style={{ fontSize: '12px', lineHeight: 1.6, opacity: 0.6, background: 'rgba(255,255,255,0.02)', padding: '15px', borderRadius: '10px' }}>
+                                        {form.notes}
+                                    </div>
+                                </div>
+                            )}
 
-                        {form.notes && (
-                            <div style={{ marginTop: '60px', padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
-                                <strong>NOTAS ADICIONALES:</strong><br />{form.notes}
+                            <div style={{ marginTop: 'auto', paddingTop: '40px', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+                                <div style={{ fontSize: '12px', opacity: 0.4 }}>Gracias por confiar en el equipo de Stephano.io.</div>
                             </div>
-                        )}
-
-                        <div style={{ marginTop: 'auto', paddingTop: '80px', textAlign: 'center', opacity: 0.15, fontSize: '10px' }}>
-                            STEPHANO.IO — DOCUMENTO OFICIAL DE COBRO — DIGITAL ENGINEERING SOLUTIONS © {new Date().getFullYear()}
-                        </div>
+                        </DocumentPage>
                     </div>
                 </div>
             </div>

@@ -8,20 +8,24 @@ import styles from '@/styles/admin.module.css';
 import { getAdminApiKey } from '@/server/actions/auth.action';
 
 /* ── Types ── */
-interface Lead { id: number; nombre: string; empresa: string | null; email: string; tipo_proyecto: string; estado: string; progreso: number; fecha_creacion: string; }
+interface Lead { id: number; nombre: string; empresa: string | null; email: string; tipo_proyecto: string; estado: string; progreso: number; fecha_creacion: string; leadScore?: number | null; leadCategory?: string | null; }
 interface Stats { total: number; nuevo: number; enProgreso: number; completado: number; }
 interface MonthData { label: string; count: number; pipeline: number; }
 interface InvStats { total_facturado: number; pagado: number; pendiente: number; este_mes: number; monthly: { label: string; total: number }[]; count: number; }
+interface RevenueStats { totalClosedRevenue: number; projectedRevenue: number; onTrack: boolean; targetGap: number; totalOpenValue: number; }
 
 /* ── Price map (mirrors server) ── */
 const PRICE_MAP: Record<string, number> = {
-    'Landing Page': 350, 'landing_page': 350, 'desarrollo_web': 350,
-    'E-commerce': 1200, 'ecommerce': 1200,
-    'CRM / Web App': 1500, 'Web App': 1500, 'CRM': 1500, 'sistema_personalizado': 1500,
-    'Corporativa': 450, 'Portfolio': 450,
-    'Automatización': 500, 'automatizacion': 500,
-    'Rediseño': 450, 'rediseno': 450,
-    'App Móvil': 1500,
+    'Landing Page': 300,
+    'landing_page': 300,
+    'Sistema Ballena': 1500,
+    'Sistema Elite': 3500,
+    'E-commerce': 1500,
+    'CRM / Web App': 2500,
+    'Web App': 2500,
+    'Automatización': 2000,
+    'App Móvil': 8000,
+    'Consultoría': 1000,
 };
 
 /* ── Helpers ── */
@@ -72,6 +76,7 @@ export default function AdminDashboard() {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [chart, setChart] = useState<MonthData[]>([]);
     const [invStats, setInvStats] = useState<InvStats | null>(null);
+    const [revStats, setRevStats] = useState<RevenueStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [showToast, setShowToast] = useState(false);
     const [latestLead, setLatestLead] = useState<Lead | null>(null);
@@ -82,13 +87,14 @@ export default function AdminDashboard() {
             const apiKey = await getAdminApiKey();
             const h = { 'x-admin-key': apiKey || '' };
 
-            const [statsRes, leadsRes, chartRes, invRes] = await Promise.all([
+            const [statsRes, leadsRes, chartRes, invRes, revRes] = await Promise.all([
                 fetch('/api/leads?stats=true', { headers: h }).then(r => r.json()),
                 fetch('/api/leads', { headers: h }).then(r => r.json()),
                 fetch('/api/leads?chart=true', { headers: h }).then(r => r.json()),
                 fetch('/api/invoices?stats=true', { headers: h }).then(r => r.json()),
+                fetch('/api/revenue-predictor', { headers: h }).then(r => r.json()),
             ]);
-
+ 
             if (statsRes.success) {
                 setStats(statsRes.data);
                 if (isPolling && prevTotalRef.current !== null && statsRes.data.total > prevTotalRef.current) {
@@ -103,6 +109,7 @@ export default function AdminDashboard() {
             if (leadsRes.success) setLeads(leadsRes.data.slice(0, 8));
             if (chartRes.success) setChart(chartRes.data.monthly || []);
             if (invRes.success) setInvStats(invRes.data);
+            if (revRes && !revRes.error) setRevStats(revRes);
         } catch (e) {
             console.error('Dashboard fetch error:', e);
         } finally {
@@ -134,12 +141,12 @@ export default function AdminDashboard() {
             {/* ── KPI Cards ── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                 {[
-                    { label: 'Total Facturado', value: fmtUSD(invStats?.total_facturado || 0), sub: `${invStats?.count || 0} facturas`, color: '#00c864', icon: '💰' },
+                    { label: 'Meta Anual ($40k)', value: fmtUSD(revStats?.totalClosedRevenue || 0), sub: `${Math.round(((revStats?.totalClosedRevenue || 0) / 40000) * 100)}% de la meta`, color: '#FFFFFF', icon: '🏆' },
                     { label: 'Pipeline Activo', value: fmtUSD(pipelineActivo), sub: `${stats.nuevo + stats.enProgreso} proyectos`, color: '#0066FF', icon: '📈' },
+                    { label: 'Ingresos Proyectados', value: fmtUSD(revStats?.projectedRevenue || 0), sub: 'Ponderado por probabilidad', color: '#00c864', icon: '🚀' },
                     { label: 'Por Cobrar', value: fmtUSD(invStats?.pendiente || 0), sub: 'facturas pendientes', color: '#FF8C00', icon: '⏳' },
                     { label: 'Este Mes', value: fmtUSD(invStats?.este_mes || 0), sub: 'ingresos del mes', color: '#00E5FF', icon: '📅' },
                     { label: 'Clientes Totales', value: String(stats.total), sub: `${stats.nuevo} nuevos`, color: '#9D4EDD', icon: '👥' },
-                    { label: 'Tasa Conversión', value: `${conversionRate}%`, sub: `${stats.completado} completados`, color: '#FF4444', icon: '🎯' },
                 ].map(card => (
                     <div key={card.label} style={{ background: '#111118', border: '1px solid #1E1E2E', borderRadius: 14, padding: '1.2rem', position: 'relative', overflow: 'hidden' }}>
                         <div style={{ fontSize: 22, marginBottom: 8 }}>{card.icon}</div>
@@ -244,6 +251,7 @@ export default function AdminDashboard() {
                             <th>Nombre</th>
                             <th>Proyecto</th>
                             <th>Valor Est.</th>
+                            <th>Score IA</th>
                             <th>Estado</th>
                             <th>Fecha</th>
                         </tr>
@@ -257,6 +265,18 @@ export default function AdminDashboard() {
                                 </td>
                                 <td style={{ color: '#aaa' }}>{lead.tipo_proyecto}</td>
                                 <td style={{ color: '#00E5FF', fontWeight: 700 }}>{fmtUSD(PRICE_MAP[lead.tipo_proyecto] || 500)}</td>
+                                <td>
+                                    {lead.leadScore ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <div style={{ padding: '2px 6px', background: lead.leadCategory === 'Prioritaria' ? '#FFD700' : 'rgba(255,255,255,0.1)', color: lead.leadCategory === 'Prioritaria' ? '#000' : '#fff', borderRadius: 4, fontSize: 10, fontWeight: 800 }}>
+                                                {lead.leadScore}
+                                            </div>
+                                            <span style={{ fontSize: 10, opacity: 0.6 }}>{lead.leadCategory}</span>
+                                        </div>
+                                    ) : (
+                                        <span style={{ fontSize: 10, opacity: 0.2 }}>Pendiente</span>
+                                    )}
+                                </td>
                                 <td><StatusBadge estado={lead.estado} /></td>
                                 <td style={{ color: '#555', fontSize: 12 }}>{new Date(lead.fecha_creacion).toLocaleDateString('es')}</td>
                             </tr>
@@ -282,9 +302,17 @@ export default function AdminDashboard() {
                             <FiBell size={20} />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <h4 style={{ margin: '0 0 4px', fontSize: 15, color: '#fff', fontWeight: 700 }}>¡Nuevo Lead!</h4>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                                <h4 style={{ margin: 0, fontSize: 15, color: '#fff', fontWeight: 700 }}>¡Nuevo Lead!</h4>
+                                {latestLead.leadCategory === 'Prioritaria' && (
+                                    <span style={{ background: '#FFD700', color: '#000', fontSize: 9, fontWeight: 900, padding: '2px 6px', borderRadius: 4, letterSpacing: '0.05em' }}>BALLENA BLANCA</span>
+                                )}
+                            </div>
                             <p style={{ margin: '0 0 10px', fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.4 }}>
                                 <strong>{latestLead.nombre}</strong> — {latestLead.tipo_proyecto} · {fmtUSD(PRICE_MAP[latestLead.tipo_proyecto] || 500)}
+                                {latestLead.leadScore && (
+                                    <span style={{ display: 'block', marginTop: 4, fontSize: 11, color: '#00E5FF' }}>IA Score: {latestLead.leadScore} ({latestLead.leadCategory})</span>
+                                )}
                             </p>
                             <Link href={`/admin/clientes/${latestLead.id}`} style={{ color: '#00E5FF', fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>Ver detalles →</Link>
                         </div>

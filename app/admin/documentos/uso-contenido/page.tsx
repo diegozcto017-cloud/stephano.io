@@ -4,37 +4,57 @@ import { useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from '@/styles/admin.module.css';
+import DocumentPage from '@/components/AdminDocument/DocumentPage';
 
 function UsoContenidoContent() {
     const searchParams = useSearchParams();
-    const previewRef = useRef<HTMLDivElement>(null);
+    const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [generating, setGenerating] = useState(false);
 
     const clientId = searchParams.get('clientId');
 
     const [form, setForm] = useState({
         clientName: searchParams.get('nombre') || '',
-        vision: 'Convertir la marca en una autoridad técnica indiscutible en el mercado regional mediante un lenguaje visual y escrito de vanguardia.',
-        toneVoice: 'Profesional, Directo, Tecnológico. Evitamos tecnicismos innecesarios pero mantenemos una postura de experto.',
-        visualHierarchy: '1. Propuesta de Valor (H1)\n2. Beneficios de Negocio (H2)\n3. Evidencia Técnica (P)',
-        contentStrategy: '- Publicación semanal de casos de éxito\n- Enfoque en LinkedIn para B2B\n- Newsletter técnico mensual'
+        assetDescription: 'Este documento detalla los activos digitales entregados al cliente, incluyendo logotipos en diversos formatos (SVG, PNG, JPG), paletas de colores (HEX, RGB, CMYK), tipografías (archivos TTF, OTF), y guías de estilo para su aplicación en diferentes medios.',
+        brandGuidelines: 'Utilizar el logotipo principal en fondos claros. Para fondos oscuros, usar la versión invertida. Mantener siempre un área de respeto alrededor del logotipo. No distorsionar, rotar o alterar los colores del logotipo. Las tipografías deben usarse según las especificaciones de la guía de estilo. Los colores deben aplicarse siguiendo la paleta definida para mantener la coherencia de marca.',
+        usageScope: 'Los activos pueden ser utilizados en materiales de marketing digital (redes sociales, sitio web, email marketing), impresos (tarjetas de presentación, folletos, papelería) y presentaciones internas/externas. Se prohíbe la reventa o distribución de los activos a terceros sin autorización expresa de Stephano.io.',
+        technicalSpecs: 'Logotipos: SVG (vectorial), PNG (fondo transparente, 300dpi), JPG (fondo blanco, 300dpi). Colores: HEX, RGB, CMYK. Tipografías: Archivos TTF/OTF. Formatos de imagen para web: optimizados para carga rápida (WebP, JPG progresivo).',
+        date: new Date().toLocaleDateString('es', { year: 'numeric', month: 'long', day: 'numeric' })
     });
 
     const update = (field: string, value: string) => setForm({ ...form, [field]: value });
 
     const downloadPDF = async () => {
-        if (!previewRef.current) return;
         setGenerating(true);
         try {
             const html2canvas = (await import('html2canvas')).default;
             const { jsPDF } = await import('jspdf');
-            const canvas = await html2canvas(previewRef.current, { scale: 2, backgroundColor: '#000000' });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`Guia_Contenido_${form.clientName.replace(/\s+/g, '_')}.pdf`);
+            const pdf = new jsPDF('p', 'mm', 'letter');
+            
+            for (let i = 0; i < pageRefs.current.length; i++) {
+                const page = pageRefs.current[i];
+                if (!page) continue;
+                
+                const canvas = await html2canvas(page, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#000000',
+                    logging: false,
+                    onclone: (clonedDoc) => {
+                        const element = clonedDoc.getElementById('pdf-page-' + i);
+                        if (element) {
+                            element.style.margin = '0';
+                            element.style.boxShadow = 'none';
+                        }
+                    }
+                });
+                
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                if (i > 0) pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, 0, 215.9, 279.4, undefined, 'FAST');
+            }
+            
+            pdf.save(`Uso_Contenido_${form.clientName.replace(/\s+/g, '_')}.pdf`);
         } catch (err) {
             console.error('PDF generation failed:', err);
         }
@@ -62,20 +82,24 @@ function UsoContenidoContent() {
                             <input className={styles.adminInput} value={form.clientName} onChange={(e) => update('clientName', e.target.value)} />
                         </div>
                         <div>
-                            <label className={styles.detailLabel}>Visión de Comunicación</label>
-                            <textarea className={styles.adminTextarea} value={form.vision} onChange={(e) => update('vision', e.target.value)} rows={3} />
+                            <label className={styles.detailLabel}>Descripción de Activos</label>
+                            <textarea className={styles.adminTextarea} value={form.assetDescription} onChange={(e) => update('assetDescription', e.target.value)} rows={3} />
                         </div>
                         <div>
-                            <label className={styles.detailLabel}>Tono y Voz</label>
-                            <textarea className={styles.adminTextarea} value={form.toneVoice} onChange={(e) => update('toneVoice', e.target.value)} rows={2} />
+                            <label className={styles.detailLabel}>Directrices de Marca</label>
+                            <textarea className={styles.adminTextarea} value={form.brandGuidelines} onChange={(e) => update('brandGuidelines', e.target.value)} rows={3} />
                         </div>
                         <div>
-                            <label className={styles.detailLabel}>Jerarquía de Mensajes</label>
-                            <textarea className={styles.adminTextarea} value={form.visualHierarchy} onChange={(e) => update('visualHierarchy', e.target.value)} rows={3} />
+                            <label className={styles.detailLabel}>Alcance de Uso</label>
+                            <textarea className={styles.adminTextarea} value={form.usageScope} onChange={(e) => update('usageScope', e.target.value)} rows={3} />
                         </div>
                         <div>
-                            <label className={styles.detailLabel}>Plan de Acción</label>
-                            <textarea className={styles.adminTextarea} value={form.contentStrategy} onChange={(e) => update('contentStrategy', e.target.value)} rows={3} />
+                            <label className={styles.detailLabel}>Especificaciones Técnicas</label>
+                            <textarea className={styles.adminTextarea} value={form.technicalSpecs} onChange={(e) => update('technicalSpecs', e.target.value)} rows={3} />
+                        </div>
+                        <div>
+                            <label className={styles.detailLabel}>Fecha de Guía</label>
+                            <input className={styles.adminInput} value={form.date} onChange={(e) => update('date', e.target.value)} />
                         </div>
                         <button onClick={downloadPDF} className={styles.btnPrimary} style={{ width: '100%', justifyContent: 'center', marginTop: '12px' }} disabled={generating}>
                             {generating ? 'Generando PDF...' : 'Generar Guía PDF'}
@@ -83,47 +107,65 @@ function UsoContenidoContent() {
                     </div>
                 </div>
 
-                <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
-                        Guía de Identidad Digital
+                {/* Live Preview - Page Based (NO NESTED SCROLL) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', background: 'rgba(0,0,0,0.1)', padding: '20px', borderRadius: '12px' }}>
+                    
+                    {/* PAGE 1: Overview & Guidelines */}
+                    <div ref={(el) => { pageRefs.current[0] = el; }} id="pdf-page-0">
+                        <DocumentPage pageNumber={1} total={2}>
+                            <div style={{ marginTop: '40px' }}>
+                                <h1 style={{ fontSize: '42px', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, color: '#ffffff' }}>GUÍA DE USO<br /><span>DE CONTENIDO</span></h1>
+                                <div style={{ fontSize: '12px', opacity: 0.4, marginTop: '10px', letterSpacing: '0.2em' }}>ASSET MANAGEMENT & BRAND GUIDELINES</div>
+                            </div>
+
+                            <div style={{ marginTop: '60px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+                                <div>
+                                    <h4 style={{ fontSize: '10px', opacity: 0.3, letterSpacing: '0.2em', marginBottom: '10px' }}>PROPIETARIO</h4>
+                                    <div style={{ fontSize: '16px', fontWeight: 700 }}>{form.clientName || 'Cliente'}</div>
+                                    <div style={{ fontSize: '13px', opacity: 0.6, marginTop: '4px' }}>Autorización de Uso Digital</div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <h4 style={{ fontSize: '10px', opacity: 0.3, letterSpacing: '0.2em', marginBottom: '10px' }}>FECHA DE EMISIÓN</h4>
+                                    <div style={{ fontSize: '16px', fontWeight: 700 }}>{form.date}</div>
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '60px' }}>
+                                <h3 style={{ fontSize: '14px', color: '#ffffff', letterSpacing: '0.1em', marginBottom: '20px' }}>DESCRIPCIÓN DE ACTIVOS</h3>
+                                <div style={{ fontSize: '15px', lineHeight: 1.8, background: 'rgba(255,255,255,0.02)', padding: '25px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    {form.assetDescription}
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '60px' }}>
+                                <h3 style={{ fontSize: '14px', color: '#ffffff', letterSpacing: '0.1em', marginBottom: '20px' }}>DIRECTRICES DE MARCA</h3>
+                                <div style={{ fontSize: '14px', lineHeight: 1.8, whiteSpace: 'pre-wrap', color: 'rgba(255,255,255,0.7)' }}>
+                                    {form.brandGuidelines}
+                                </div>
+                            </div>
+                        </DocumentPage>
                     </div>
-                    <div ref={previewRef} style={{ background: '#000000', color: '#ffffff', width: '100%', minHeight: '842px', padding: '70px', fontFamily: 'Inter, sans-serif' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '80px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '30px' }}>
-                            <div>
-                                <h1 style={{ fontSize: '36px', fontWeight: 900, letterSpacing: '-0.04em', margin: 0 }}>CONTENT GUIDE</h1>
-                                <p style={{ fontSize: '12px', opacity: 0.5, marginTop: '5px' }}>STEPHANO BRAND SYSTEMS · {new Date().getFullYear()}</p>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '24px', fontWeight: 800, background: 'linear-gradient(135deg, #0066FF, #00E5FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Stephano.io</div>
-                                <div style={{ fontSize: '11px', opacity: 0.4 }}>Creative & Engineering Suite</div>
-                            </div>
-                        </div>
 
-                        <div style={{ marginBottom: '60px' }}>
-                            <h4 style={{ fontSize: '11px', opacity: 0.3, letterSpacing: '0.2em', marginBottom: '15px' }}>LA VISIÓN</h4>
-                            <p style={{ fontSize: '18px', lineHeight: 1.6, fontWeight: 700, color: '#00E5FF' }}>{form.vision}</p>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '50px', marginBottom: '60px' }}>
-                            <div>
-                                <h4 style={{ fontSize: '11px', opacity: 0.3, letterSpacing: '0.2em', marginBottom: '15px' }}>TONO Y VOZ</h4>
-                                <div style={{ fontSize: '14px', lineHeight: 1.8, color: 'rgba(255,255,255,0.9)' }}>{form.toneVoice}</div>
+                    {/* PAGE 2: Permissions & Specs */}
+                    <div ref={(el) => { pageRefs.current[1] = el; }} id="pdf-page-1">
+                        <DocumentPage pageNumber={2} total={2}>
+                            <h3 style={{ fontSize: '14px', color: '#ffffff', letterSpacing: '0.1em', marginBottom: '30px' }}>LICENCIA Y PERMISOS</h3>
+                            
+                            <div style={{ marginBottom: '40px', padding: '30px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <h4 style={{ fontSize: '12px', color: '#ffffff', letterSpacing: '0.1em', marginBottom: '15px' }}>ALCANCE DE USO</h4>
+                                <div style={{ fontSize: '14px', lineHeight: 2, whiteSpace: 'pre-wrap', color: 'rgba(255,255,255,0.9)' }}>{form.usageScope}</div>
                             </div>
-                            <div>
-                                <h4 style={{ fontSize: '11px', opacity: 0.3, letterSpacing: '0.2em', marginBottom: '15px' }}>JERARQUÍA VISUAL</h4>
-                                <div style={{ fontSize: '14px', lineHeight: 1.8, color: 'rgba(255,255,255,0.9)', whiteSpace: 'pre-wrap' }}>{form.visualHierarchy}</div>
+
+                            <div style={{ marginBottom: '40px' }}>
+                                <h4 style={{ fontSize: '12px', opacity: 0.4, marginBottom: '15px' }}>ESPECIFICACIONES TÉCNICAS</h4>
+                                <div style={{ fontSize: '14px', lineHeight: 1.8, whiteSpace: 'pre-wrap', color: 'rgba(255,255,255,0.7)' }}>{form.technicalSpecs}</div>
                             </div>
-                        </div>
 
-                        <div style={{ marginTop: '40px' }}>
-                            <h4 style={{ fontSize: '11px', opacity: 0.3, letterSpacing: '0.2em', marginBottom: '20px' }}>ESTRATEGIA DE CANALES</h4>
-                            <div style={{ fontSize: '15px', lineHeight: 2, color: '#fff', borderLeft: '1px solid #0066FF', paddingLeft: '25px', whiteSpace: 'pre-wrap' }}>{form.contentStrategy}</div>
-                        </div>
-
-                        <div style={{ marginTop: 'auto', paddingTop: '100px', display: 'flex', gap: '15px', alignItems: 'center', opacity: 0.3 }}>
-                            <div style={{ width: '40px', height: '1px', background: '#0066FF' }}></div>
-                            <div style={{ fontSize: '11px' }}>STEPHANO.IO — DIGITAL ENGINEERING & DESIGN</div>
-                        </div>
+                            <div style={{ marginTop: 'auto', padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', textAlign: 'center' }}>
+                                <div style={{ fontSize: '12px', opacity: 0.5, fontStyle: 'italic', marginBottom: '10px' }}>Documento generado por el equipo técnico de Stephano.io.</div>
+                                <div style={{ fontSize: '24px', fontWeight: 900, color: '#ffffff' }}>Stephano.io</div>
+                            </div>
+                        </DocumentPage>
                     </div>
                 </div>
             </div>

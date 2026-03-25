@@ -65,6 +65,7 @@ export default function CotizarPage() {
         url_proyecto: '',
         empresa: '',
         mensaje: '',
+        requestDemo: false,
         error: ''
     });
 
@@ -110,6 +111,7 @@ VOLUMEN: ${selections.pages} páginas
 URGENCIA: ${selections.urgency}
 ESTIMADO: $${estimate}
 
+DEMO SOLICITADO: ${formData.requestDemo ? 'SÍ — quiere ver una demo personalizada' : 'No'}
 NOTAS: ${formData.mensaje}
         `;
 
@@ -429,6 +431,24 @@ Inversión Base: $${estimate}
                                             placeholder="Cuéntanos brevemente sobre tu idea o negocio..." rows={4} className={glass.glassInput}
                                             value={formData.mensaje} onChange={e => setFormData({ ...formData, mensaje: e.target.value })}
                                         />
+                                        {/* Demo request */}
+                                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', padding: '14px 16px', background: formData.requestDemo ? 'rgba(0,102,255,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${formData.requestDemo ? 'rgba(0,102,255,0.3)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 10, transition: 'all 0.2s' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.requestDemo}
+                                                onChange={e => setFormData({ ...formData, requestDemo: e.target.checked })}
+                                                style={{ marginTop: 2, width: 16, height: 16, accentColor: 'var(--accent)', flexShrink: 0 }}
+                                            />
+                                            <div>
+                                                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 3 }}>
+                                                    🎯 Quiero ver una demostración de cómo se vería mi página
+                                                </div>
+                                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                                                    Te enviaremos un link con una vista previa interactiva y editable de tu sitio — podés cambiar colores, tipografía y nombre antes de decidir.
+                                                </div>
+                                            </div>
+                                        </label>
+
                                         <div style={{ marginTop: 'var(--space-xl)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <button type="button" onClick={prevStep} className={glass.btnGlass}>Atrás</button>
                                             <button type="submit" disabled={loading} className={glass.btnPrimary}>

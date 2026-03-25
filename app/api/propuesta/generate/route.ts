@@ -4,12 +4,12 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 const PRICE_MAP: Record<string, number> = {
-    'Landing Page': 350,
-    'E-commerce': 1200,
-    'CRM/Web App': 1500,
-    'Corporativa': 450,
-    'Automatización': 500,
-    'Rediseño': 450,
+    'Landing Page': 300,
+    'E-commerce': 1500,
+    'CRM/Web App': 5000,
+    'Corporativa': 800,
+    'Automatización': 2000,
+    'Rediseño': 1000,
 };
 
 const EXTRAS_MAP: Record<string, number> = {
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
         }
 
-        const basePrice = PRICE_MAP[service] ?? 350;
+        const basePrice = PRICE_MAP[service] ?? 300;
         const extrasArr: string[] = extras ?? [];
         const extrasBreakdown = extrasArr
             .map((e) => `- ${e}: +$${EXTRAS_MAP[e] ?? 0} USD`)
