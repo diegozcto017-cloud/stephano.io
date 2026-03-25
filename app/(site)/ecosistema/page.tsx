@@ -9,167 +9,202 @@ const fadeUp = {
     hidden: { opacity: 0, y: 30 },
     visible: (i: number) => ({
         opacity: 1, y: 0,
-        transition: { delay: i * 0.05, duration: 0.5, ease: 'easeOut' as const },
+        transition: { delay: i * 0.04, duration: 0.5, ease: 'easeOut' as const },
     }),
 };
 
 const industries = [
-    { id: 'restaurante', name: 'Restaurante / Soda', emoji: '🍽️', color: '#e85d04', tagline: 'POS, comandas, menú QR' },
-    { id: 'cafeteria', name: 'Cafetería', emoji: '☕', color: '#6F4E37', tagline: 'Menú QR, órdenes rápidas' },
-    { id: 'pasteleria', name: 'Pastelería', emoji: '🍰', color: '#FFB6C1', tagline: 'Pedidos especiales, vitrina' },
-    { id: 'unas', name: 'Salón de Uñas', emoji: '💅', color: '#E91E63', tagline: 'Agenda manicure y diseños' },
-    { id: 'salon', name: 'Salón de Belleza', emoji: '💇', color: '#ec4899', tagline: 'Agenda, comisiones, lealtad' },
-    { id: 'serigrafia', name: 'Serigrafía / Bordado', emoji: '👕', color: '#00A8E8', tagline: 'Catálogo y producción' },
-    { id: 'macrobiotica', name: 'Macrobiótica', emoji: '🌿', color: '#2D5A27', tagline: 'Suplementos e inventario' },
-    { id: 'dental', name: 'Clínica Dental', emoji: '🦷', color: '#0284c7', tagline: 'Expediente, agenda, odontograma' },
-    { id: 'medico', name: 'Médicos / Clínica', emoji: '🩺', color: '#0d9488', tagline: 'Citas, expediente y recetas' },
-    { id: 'veterinaria', name: 'Veterinaria', emoji: '🐾', color: '#65a30d', tagline: 'Historia clínica, vacunas' },
-    { id: 'taller-autos', name: 'Taller de Autos', emoji: '🚗', color: '#374151', tagline: 'Órdenes de servicio, historial' },
-    { id: 'gimnasio', name: 'Gimnasio / Fitness', emoji: '💪', color: '#16a34a', tagline: 'Membresías, acceso QR' },
-    { id: 'bienesraices', name: 'Bienes Raíces', emoji: '🏠', color: '#1d4ed8', tagline: 'Catálogo y CRM Inmobiliario' },
-    { id: 'tienda', name: 'Tienda / Boutique', emoji: '🛍️', color: '#db2777', tagline: 'Catálogo moda, envíos' },
-    { id: 'abogados', name: 'Bufete Abogados', emoji: '⚖️', color: '#1e40af', tagline: 'Casos, documentos, agenda' },
-    { id: 'ferreteria', name: 'Ferretería', emoji: '🔧', color: '#d97706', tagline: 'Inventario y ventas' },
+    { name: 'Restaurante / Soda', emoji: '🍽️', tagline: 'Caja del día, gestión de pedidos y menú digital.' },
+    { name: 'Cafetería', emoji: '☕', tagline: 'Venta rápida, menú QR y control de ingredientes.' },
+    { name: 'Pastelería', emoji: '🍰', tagline: 'Encargos especiales y vitrina de productos.' },
+    { name: 'Salón de Uñas', emoji: '💅', tagline: 'Agenda de citas y catálogo de diseños.' },
+    { name: 'Salón de Belleza', emoji: '💇', tagline: 'Control de citas, servicios y fidelización.' },
+    { name: 'Barbería', emoji: '✂️', tagline: 'Turnos online y recordatorios automáticos.' },
+    { name: 'Serigrafía / Bordado', emoji: '👕', tagline: 'Control de pedidos y estados de producción.' },
+    { name: 'Macrobiótica', emoji: '🌿', tagline: 'Venta de suplementos y control de inventario.' },
+    { name: 'Clínica Dental', emoji: '🦷', tagline: 'Agenda, expedientes y control de pagos.' },
+    { name: 'Médicos / Especialista', emoji: '🩺', tagline: 'Citas online, recetas y historial clínico.' },
+    { name: 'Veterinaria', emoji: '🐾', tagline: 'Ficha de mascotas, vacunas y recordatorios.' },
+    { name: 'Taller de Autos', emoji: '🚗', tagline: 'Servicios mecánicos y seguimiento por WhatsApp.' },
+    { name: 'Taller de Motos', emoji: '🏍️', tagline: 'Repuestos, mecánica y órdenes de trabajo.' },
+    { name: 'Gimnasio / Fitness', emoji: '💪', tagline: 'Membresías, pagos mensuales y accesos.' },
+    { name: 'Bienes Raíces', emoji: '🏠', tagline: 'Catálogo de propiedades y gestión de prospectos.' },
+    { name: 'Arquitectura', emoji: '📐', tagline: 'Portafolio de proyectos y gestión de obras.' },
+    { name: 'Contadores', emoji: '📊', tagline: 'Gestión de documentos e impuestos por cliente.' },
+    { name: 'Abogados', emoji: '⚖️', tagline: 'Seguimiento de casos y repositorio legal.' },
+    { name: 'Ferretería', emoji: '🔧', tagline: 'Caja de ventas, stock masivo y proformas.' },
+    { name: 'Farmacia', emoji: '💊', tagline: 'Venta rápida, entregas sugeridas y stock.' },
+    { name: 'Tienda / Boutique', emoji: '🛍️', tagline: 'Control de tallas, colores e inventario.' },
+    { name: 'Consultoría', emoji: '🏢', tagline: 'Gestión de proyectos, horas y facturación.' },
+    { name: 'Constructoras', emoji: '🏗️', tagline: 'Avance de obra, costos y presupuestos.' },
+    { name: 'Repuestos', emoji: '⚙️', tagline: 'Catálogo inteligente y búsqueda por modelo.' },
+    { name: 'Eventos', emoji: '🎟️', tagline: 'Reservas, registro y venta de entradas.' },
+    { name: 'Distribuidores', emoji: '🚚', tagline: 'Pedidos mayoristas y logística de entrega.' },
+    { name: 'Academias', emoji: '🎓', tagline: 'Inscripciones, pagos y control de alumnos.' },
+    { name: 'Hoteles', emoji: '🏨', tagline: 'Reservas online y gestión de huéspedes.' },
 ];
 
-const mainServices = [
+const capabilities = [
     {
-        title: 'Landings Estratégicas',
-        price: 'desde $300',
-        desc: 'Convertí visitantes en clientes con páginas de alto impacto optimizadas para Google y redes sociales.',
-        icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /></svg>,
+        title: 'Administración de Ventas',
+        desc: 'Sincronizá tu caja, controlá tus ingresos diarios y gestioná pagos de clientes de forma simple.',
+        icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>
     },
     {
-        title: 'Sistemas de Gestión (ERP/CRM)',
-        price: 'desde $1,500',
-        desc: 'Automatizá tu operación: inventarios, agendas, expedientes y caja centralizada en un solo lugar.',
-        icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>,
+        title: 'Gestión de Clientes (CRM)',
+        desc: 'Base de datos inteligente para conocer a tus clientes, sus preferencias y automatizar promociones.',
+        icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
     },
     {
-        title: 'E-commerce Profesional',
-        price: 'desde $1,200',
-        desc: 'Vendé 24/7 con pasarelas de pago locales e internacionales, gestión de stock y logística.',
-        icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>,
-    },
+        title: 'Pagos e Integraciones',
+        desc: 'Aceptá pagos locales, conectá WhatsApp e integrá las herramientas que ya usás en tu negocio.',
+        icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8" cy="7" r="4" /><path d="M22 3.13a4 4 0 0 1 0 7.75" /></svg>
+    }
 ];
 
-const caseStudies = [
-    {
-        title: 'SaaS de Gestión Empresarial',
-        result: 'Reducción del 40% en tiempo administrativo.',
-        category: 'Sistema Elite',
-    },
-    {
-        title: 'E-commerce Moda Premium',
-        result: '120% incremento en ventas online.',
-        category: 'E-commerce',
-    },
-    {
-        title: 'Automatización Logística',
-        result: 'Ahorro de 25 horas semanales.',
-        category: 'Automatización',
-    },
+const trustedLogos = [
+    { name: 'Global Tech CR', industry: 'Consultoría' },
+    { name: 'Terra Nova BI', industry: 'Bienes Raíces' },
+    { name: 'Lumina Aesthetic', industry: 'Estética' },
+    { name: 'Stark Logistics', industry: 'Distribución' },
+    { name: 'Pacific Gourmet', industry: 'Restaurante' },
+    { name: 'Nexus Architecture', industry: 'Diseño' },
 ];
 
 export default function EcosistemaPage() {
     return (
         <div className={styles.page}>
             <div className="container">
-                {/* Header Section */}
-                <div className={styles.pageHeader}>
-                    <motion.span className={styles.pageLabel} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                        Ecosistema Stephano.io
+                {/* Hero section refined */}
+                <header className={styles.pageHeader}>
+                    <motion.span 
+                        className={styles.pageLabel} 
+                        initial={{ opacity: 0, scale: 0.9 }} 
+                        animate={{ opacity: 1, scale: 1 }}
+                        style={{ background: 'rgba(0, 102, 255, 0.05)', color: 'var(--accent-secondary)', border: '1px solid rgba(0, 102, 255, 0.2)' }}
+                    >
+                        Ingeniería Digital & Sistemas de Gestión
                     </motion.span>
-                    <motion.h1 className={styles.pageTitle} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                        Ingeniería Digital de Alto Rendimiento
+                    <motion.h1 
+                        className={styles.pageTitle} 
+                        initial={{ opacity: 0, y: 15 }} 
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{ letterSpacing: '-0.04em', fontWeight: 800 }}
+                    >
+                        El Ecosistema <span style={{ color: 'var(--accent-primary)' }}>Stephano.io</span>
                     </motion.h1>
-                    <p className={styles.pageSubtitle}>
-                        Fusionamos diseño premium con arquitectura de software robusta para transformar cualquier tipo de negocio en una potencia digital.
+                    <p className={styles.pageSubtitle} style={{ fontSize: '1.2rem', lineHeight: 1.6 }}>
+                        No solo creamos páginas web de alta gama; construimos la infraestructura digital que centraliza tus pagos, clientes y administración.
                     </p>
-                </div>
+                </header>
 
-                {/* Section 1: Services Types */}
-                <div style={{ marginBottom: 'var(--space-4xl)' }}>
-                    <div className={styles.sectionHeader}>
-                        <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: '#fff' }}>¿Cómo te ayudamos a crecer?</h2>
-                        <p style={{ color: 'var(--text-secondary)' }}>Elegí el nivel de potencia que tu negocio necesita.</p>
-                    </div>
+                {/* Section: Comprehensive Capabilities */}
+                <section style={{ marginBottom: 'var(--space-4xl)' }}>
                     <div className={styles.cardGrid}>
-                        {mainServices.map((s, i) => (
-                            <motion.div key={s.title} className={styles.card} custom={i}
-                                initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                                style={{ border: '1px solid rgba(0,102,255,0.15)', background: 'rgba(0,102,255,0.02)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                                    <div className={styles.cardIcon} style={{ background: 'rgba(0,102,255,0.1)', color: 'var(--accent-primary)' }}>{s.icon}</div>
-                                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--accent-primary)', background: 'rgba(0,102,255,0.1)', padding: '4px 12px', borderRadius: 100 }}>{s.price}</span>
-                                </div>
-                                <h3 className={styles.cardTitle}>{s.title}</h3>
-                                <p className={styles.cardDesc}>{s.desc}</p>
+                        {capabilities.map((cap, i) => (
+                            <motion.div 
+                                key={cap.title} 
+                                className={styles.card} 
+                                custom={i}
+                                initial="hidden" 
+                                whileInView="visible" 
+                                viewport={{ once: true }} 
+                                variants={fadeUp}
+                                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
+                            >
+                                <div style={{ color: 'var(--accent-primary)', marginBottom: 20 }}>{cap.icon}</div>
+                                <h3 className={styles.cardTitle}>{cap.title}</h3>
+                                <p className={styles.cardDesc} style={{ color: 'var(--text-secondary)' }}>{cap.desc}</p>
                             </motion.div>
                         ))}
                     </div>
-                </div>
+                </section>
 
-                {/* Section 2: Industries (28 Niches) */}
-                <div style={{ marginBottom: 'var(--space-4xl)' }}>
-                    <div className={styles.sectionHeader}>
-                        <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: '#fff' }}>Soluciones por Industria</h2>
-                        <p style={{ color: 'var(--text-secondary)' }}>Experiencias personalizadas para más de 28 sectores comerciales.</p>
+                {/* Section: All 28 Industries simplified aesthetics */}
+                <section style={{ marginBottom: 'var(--space-4xl)' }}>
+                    <div style={{ textAlign: 'center', marginBottom: 'var(--space-2xl)' }}>
+                        <h2 style={{ fontSize: 'var(--font-3xl)', fontWeight: 800, color: '#fff' }}>Soluciones por Industria</h2>
+                        <p style={{ color: 'var(--text-secondary)' }}>Estructuras prediseñadas y personalizadas para cada sector comercial.</p>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
                         {industries.map((ind, i) => (
-                            <motion.div key={ind.name} custom={i}
-                                initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-                                <div style={{ fontSize: 24, background: ind.color + '15', width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${ind.color}33` }}>
-                                    {ind.emoji}
+                            <motion.div 
+                                key={ind.name} 
+                                custom={i}
+                                initial="hidden" 
+                                whileInView="visible" 
+                                viewport={{ once: true }} 
+                                variants={fadeUp}
+                                whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(0,102,255,0.3)' }}
+                                style={{ 
+                                    background: 'rgba(255,255,255,0.015)', 
+                                    border: '1px solid rgba(255,255,255,0.04)', 
+                                    borderRadius: 16, 
+                                    padding: '20px', 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    gap: 12,
+                                    cursor: 'default',
+                                    transition: 'all 0.2s ease'
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ fontSize: 22 }}>{ind.emoji}</div>
+                                    <h4 style={{ fontSize: 16, fontWeight: 700, color: '#fff', margin: 0 }}>{ind.name}</h4>
                                 </div>
-                                <div>
-                                    <h4 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>{ind.name}</h4>
-                                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: 0, marginTop: 2 }}>{ind.tagline}</p>
-                                </div>
-                            </motion.div>
-                        ))}
-                        <div style={{ background: 'linear-gradient(135deg, rgba(0,102,255,0.1), transparent)', border: '1px dashed rgba(0,102,255,0.3)', borderRadius: 16, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span style={{ fontSize: 13, color: 'var(--accent-primary)', fontWeight: 600 }}>+ 12 Industrias más →</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Section 3: Portfolio Highlights */}
-                <div style={{ marginBottom: 'var(--space-4xl)' }}>
-                    <div className={styles.sectionHeader}>
-                        <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: '#fff' }}>Impacto Real</h2>
-                        <p style={{ color: 'var(--text-secondary)' }}>Casos de estudio que demuestran nuestra capacidad de ejecución.</p>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
-                        {caseStudies.map((cs, i) => (
-                            <motion.div key={cs.title} custom={i}
-                                initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                                style={{ background: '#0d0d14', border: '1px solid #1e1e2e', borderRadius: 20, padding: 24 }}>
-                                <span style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{cs.category}</span>
-                                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '8px 0 12px' }}>{cs.title}</h3>
-                                <div style={{ background: 'rgba(0,200,100,0.06)', border: '1px solid rgba(0,200,100,0.15)', borderRadius: 10, padding: '8px 12px', color: '#00c864', fontSize: 13, fontWeight: 600 }}>
-                                    📈 {cs.result}
-                                </div>
+                                <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.6 }}>{ind.tagline}</p>
                             </motion.div>
                         ))}
                     </div>
-                </div>
+                </section>
 
-                {/* CTA Section */}
-                <motion.div style={{ textAlign: 'center', padding: 'var(--space-4xl) 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}
-                    initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-                    <h2 style={{ fontSize: 'var(--font-3xl)', fontWeight: 800, color: '#fff', marginBottom: 16 }}>¿Listo para el siguiente nivel?</h2>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: 32, maxWidth: 600, margin: '0 auto 32px' }}>
-                        No solo hacemos páginas web. Construimos la infraestructura digital que tu negocio necesita para dominar su mercado.
+                {/* Section: Partnerships / Trusted By (Mockup environment) */}
+                <section style={{ marginBottom: 'var(--space-4xl)', padding: 'var(--space-3xl) 0', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div style={{ textAlign: 'center', marginBottom: 'var(--space-xl)' }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-secondary)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+                            Trusted Collaborators & Partners
+                        </span>
+                        <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 8 }}>
+                            * Ambiente de Pruebas — Próximamente Colaboraciones Oficiales Publicadas
+                        </p>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 'var(--space-2xl)', opacity: 0.5, filter: 'grayscale(1)' }}>
+                        {trustedLogos.map((logo) => (
+                            <div key={logo.name} style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: 800, fontSize: 18, color: '#fff', letterSpacing: '-0.02em' }}>{logo.name}</div>
+                                <div style={{ fontSize: 9, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>{logo.industry}</div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Final Call to Action Refined */}
+                <motion.div 
+                    style={{ textAlign: 'center', padding: 'var(--space-4xl) 0' }}
+                    initial={{ opacity: 0 }} 
+                    whileInView={{ opacity: 1 }} 
+                    viewport={{ once: true }}
+                >
+                    <h2 style={{ fontSize: 'var(--font-4xl)', fontWeight: 800, color: '#fff', marginBottom: 16 }}>Lleve su negocio al estándar Elite</h2>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: 40, maxWidth: 640, margin: '0 auto 40px', fontSize: '1.1rem' }}>
+                        No se conforme con una página web estática. Integre un sistema de ingeniería que trabaje para usted 24/7.
                     </p>
-                    <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
-                        <Link href="/cotizar" className={glass.btnPrimary} style={{ padding: '14px 32px' }}>Cotizar Proyecto</Link>
-                        <Link href="/contacto" className={glass.btnSecondary} style={{ padding: '14px 32px' }}>Hablar con un experto</Link>
+                    <div style={{ display: 'flex', gap: 20, justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <Link href="/cotizar" className={glass.btnPrimary} style={{ padding: '16px 40px', fontSize: '1rem' }}>Cotizar Mi Sistema</Link>
+                        <Link href="/contacto" className={glass.btnSecondary} style={{ padding: '16px 40px', fontSize: '1rem' }}>Consultoría Estratégica</Link>
                     </div>
                 </motion.div>
             </div>
+            
+            <style jsx>{`
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 0 24px;
+                }
+            `}</style>
         </div>
     );
 }
