@@ -6,10 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import styles from './Navbar.module.css';
 
 const navItems = [
-    { label: 'Servicios', href: '/servicios' },
-    { label: 'Soluciones', href: '/soluciones' },
+    { label: 'Ecosistema', href: '/ecosistema' },
     { label: 'Proceso', href: '/proceso' },
-    { label: 'Portafolio', href: '/portafolio' },
     { label: 'Contactar', href: '/contacto' },
 ];
 
