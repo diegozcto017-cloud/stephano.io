@@ -62,14 +62,6 @@ const capabilities = [
     }
 ];
 
-const trustedLogos = [
-    { name: 'Global Tech CR', industry: 'Consultoría' },
-    { name: 'Terra Nova BI', industry: 'Bienes Raíces' },
-    { name: 'Lumina Aesthetic', industry: 'Estética' },
-    { name: 'Stark Logistics', industry: 'Distribución' },
-    { name: 'Pacific Gourmet', industry: 'Restaurante' },
-    { name: 'Nexus Architecture', industry: 'Diseño' },
-];
 
 export default function EcosistemaPage() {
     return (
@@ -157,27 +149,6 @@ export default function EcosistemaPage() {
                                 </div>
                                 <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.6 }}>{ind.tagline}</p>
                             </motion.div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* Section: Partnerships / Trusted By (Mockup environment) */}
-                <section style={{ marginBottom: 'var(--space-4xl)', padding: 'var(--space-3xl) 0', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <div style={{ textAlign: 'center', marginBottom: 'var(--space-xl)' }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-secondary)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-                            Trusted Collaborators & Partners
-                        </span>
-                        <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 8 }}>
-                            * Ambiente de Pruebas — Próximamente Colaboraciones Oficiales Publicadas
-                        </p>
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 'var(--space-2xl)', opacity: 0.5, filter: 'grayscale(1)' }}>
-                        {trustedLogos.map((logo) => (
-                            <div key={logo.name} style={{ textAlign: 'center' }}>
-                                <div style={{ fontWeight: 800, fontSize: 18, color: '#fff', letterSpacing: '-0.02em' }}>{logo.name}</div>
-                                <div style={{ fontSize: 9, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>{logo.industry}</div>
-                            </div>
                         ))}
                     </div>
                 </section>
