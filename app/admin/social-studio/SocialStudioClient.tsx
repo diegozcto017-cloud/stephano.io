@@ -67,14 +67,22 @@ const SITE_SECTIONS = [
     { label: 'Contactar', value: 'contactar', emoji: '💬', desc: 'Chatbot IA, WhatsApp, consultoría' },
 ];
 
-const QUICK_TEMPLATES = [
-    { title: '¿Tu negocio pierde clientes sin web?', industry: 'general', section: 'home', slides: 5 },
-    { title: 'El Ecosistema que gestiona tu negocio completo', industry: 'general', section: 'ecosistema', slides: 5 },
-    { title: 'De WhatsApp caótico a sistema automático', industry: 'ecommerce', section: 'ecosistema', slides: 5 },
-    { title: 'Agenda automática para tu salón o clínica', industry: 'salon', section: 'ecosistema', slides: 5 },
-    { title: '¿Cuánto cuesta tu sistema digital? Te lo decimos', industry: 'general', section: 'cotizar', slides: 4 },
-    { title: 'Así trabajamos: 5 fases para transformar tu negocio', industry: 'general', section: 'proceso', slides: 6 },
-];
+function getQuickTemplates(section: string, industry: string) {
+    const ind = INDUSTRIES.find(i => i.value === industry);
+    const label = ind && industry !== 'general' ? (ind.label.split('/')[0].trim()) : 'tu negocio';
+    const all = [
+        { title: `¿${label} pierde clientes sin presencia digital?`, section: 'home', slides: 5 },
+        { title: `Por qué ${label} necesita más que solo redes sociales`, section: 'home', slides: 5 },
+        { title: `El ecosistema digital que gestiona ${label} completo`, section: 'ecosistema', slides: 5 },
+        { title: `De WhatsApp caótico a sistema automático en ${label}`, section: 'ecosistema', slides: 5 },
+        { title: `¿Cuánto cuesta digitalizar ${label}? Te lo decimos`, section: 'cotizar', slides: 4 },
+        { title: `Cómo transformamos ${label} en 5 fases`, section: 'proceso', slides: 6 },
+        { title: `Chatbot IA 24/7 para atender a tus clientes de ${label}`, section: 'contactar', slides: 5 },
+        { title: `3 errores digitales que le cuestan clientes a ${label}`, section: 'general', slides: 5 },
+    ];
+    const filtered = section === 'general' ? all : all.filter(t => t.section === section || t.section === 'general');
+    return filtered.slice(0, 6).map(t => ({ ...t, industry }));
+}
 
 const ANGLE_COLORS: Record<string, string> = {
     'pain-point': '#ff6b6b',
@@ -346,7 +354,7 @@ export default function SocialStudioClient() {
         }
         setGeneratingImages(false);
         setTab('preview');
-    }, [generated, images]);
+    }, [generated, images, section]);
 
     const allImagesGenerated = images.length > 0 && images.every(Boolean);
     const safeSlides = generated?.slides ?? [];
@@ -432,7 +440,7 @@ export default function SocialStudioClient() {
                         <div>
                             <div style={{ fontSize: 11, color: '#444', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Templates rápidos</div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
-                                {QUICK_TEMPLATES.map((tmpl, i) => {
+                                {getQuickTemplates(section, industry).map((tmpl, i) => {
                                     const sectionData = SITE_SECTIONS.find(s => s.value === tmpl.section);
                                     return (
                                         <div key={i} onClick={() => generateContent(tmpl.title, tmpl.industry, tmpl.slides, tmpl.section)}
@@ -496,13 +504,13 @@ export default function SocialStudioClient() {
                         <div style={{ display: 'flex', gap: 10 }}>
                             <input value={customTopic} onChange={e => setCustomTopic(e.target.value)}
                                 placeholder="Ej: Por qué los restaurantes necesitan menú QR..."
-                                onKeyDown={e => { if (e.key === 'Enter' && customTopic.trim()) generateContent(customTopic, industry, slideCount); }}
+                                onKeyDown={e => { if (e.key === 'Enter' && customTopic.trim()) generateContent(customTopic, industry, slideCount, section); }}
                                 style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid #2a2a3e', background: '#0A0A0F', color: '#fff', fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
                             <select value={slideCount} onChange={e => setSlideCount(Number(e.target.value))}
                                 style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid #2a2a3e', background: '#0d0d14', color: '#fff', fontSize: 13, fontFamily: 'inherit' }}>
                                 {[3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} slides</option>)}
                             </select>
-                            <button onClick={() => customTopic.trim() && generateContent(customTopic, industry, slideCount)}
+                            <button onClick={() => customTopic.trim() && generateContent(customTopic, industry, slideCount, section)}
                                 disabled={!customTopic.trim()}
                                 style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: customTopic.trim() ? 'rgba(0,217,255,0.15)' : 'rgba(255,255,255,0.03)', color: customTopic.trim() ? '#00D9FF' : '#333', fontSize: 13, fontWeight: 700, cursor: customTopic.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}>
                                 Generar →
