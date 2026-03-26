@@ -265,18 +265,23 @@ export default function SocialStudioClient() {
 
     const downloadImage = async (url: string, filename: string) => {
         try {
-            const res = await fetch(url);
-            const blob = await res.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-            console.error('Download failed', err);
+            if (url.startsWith('data:') || url.startsWith('/')) {
+                // data: URLs (Gemini base64) and local paths can be fetched directly
+                const res = await fetch(url);
+                const blob = await res.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(blobUrl);
+            } else {
+                // External URLs (Pollinations, etc.) — open in new tab for manual save
+                window.open(url, '_blank');
+            }
+        } catch {
             window.open(url, '_blank');
         }
     };
@@ -580,7 +585,7 @@ export default function SocialStudioClient() {
 
                     {/* Right: Preview */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-                        {generated ? (
+                        {generated?.slides?.length ? (
                             <>
                                 <PhonePreview
                                     slides={generated.slides}
